@@ -80,24 +80,23 @@ class NTC_Renderer {
 		>
 			<div class="ntc-carousel__header">
 				<div class="ntc-carousel__heading-group">
-					<p class="ntc-carousel__eyebrow"><?php echo esc_html__( 'Live feed', 'rss-news-carousel' ); ?></p>
+					<div class="ntc-carousel__heading-meta">
+						<p class="ntc-carousel__eyebrow"><?php echo esc_html__( 'Live feed', 'rss-news-carousel' ); ?></p>
+						<p class="ntc-carousel__status" data-role="status" aria-live="polite">
+							<?php
+							echo esc_html(
+								sprintf(
+									/* translators: 1: first visible slide, 2: last visible slide, 3: total slides */
+									__( 'Showing %1$d-%2$d of %3$d', 'rss-news-carousel' ),
+									1,
+									1,
+									$item_count
+								)
+							);
+							?>
+						</p>
+					</div>
 					<h2 class="ntc-carousel__title"><?php echo esc_html__( 'Seneste nyheder om dit yndlingshold', 'rss-news-carousel' ); ?></h2>
-				</div>
-
-				<div class="ntc-carousel__controls" aria-label="<?php echo esc_attr__( 'Carousel controls', 'rss-news-carousel' ); ?>">
-					<p class="ntc-carousel__status" data-role="status" aria-live="polite">
-						<?php
-						echo esc_html(
-							sprintf(
-								/* translators: 1: first visible slide, 2: last visible slide, 3: total slides */
-								__( 'Showing %1$d-%2$d of %3$d', 'rss-news-carousel' ),
-								1,
-								1,
-								$item_count
-							)
-						);
-						?>
-					</p>
 				</div>
 			</div>
 
