@@ -288,6 +288,7 @@
 		if (prevButton) {
 			prevButton.addEventListener('click', function () {
 				handlePrev();
+				prevButton.blur();
 				startAutoplay();
 			});
 		}
@@ -295,6 +296,7 @@
 		if (nextButton) {
 			nextButton.addEventListener('click', function () {
 				handleNext();
+				nextButton.blur();
 				startAutoplay();
 			});
 		}

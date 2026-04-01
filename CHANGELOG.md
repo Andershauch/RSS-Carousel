@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.8 - 2026-04-01
+
+- Improved carousel arrow feedback so clicks show a short accent glow without leaving a stuck pressed state.
+
 ## 1.0.7 - 2026-04-01
 
 - Refined the mobile swipe animation for a more fluid, app-like feel.

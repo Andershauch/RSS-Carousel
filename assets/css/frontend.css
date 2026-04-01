@@ -188,17 +188,28 @@
 	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 	width: 3rem;
 	z-index: 3;
+	-webkit-tap-highlight-color: transparent;
 }
 
 .ntc-carousel__nav:hover,
 .ntc-carousel__nav:focus-visible {
-	border-color: rgba(37, 99, 235, 0.28);
-	box-shadow: 0 18px 36px rgba(15, 23, 42, 0.2);
+	border-color: color-mix(in srgb, var(--ntc-accent) 45%, white);
+	box-shadow:
+		0 18px 36px rgba(15, 23, 42, 0.2),
+		0 0 0 4px color-mix(in srgb, var(--ntc-accent) 32%, transparent);
+	outline: none;
+}
+
+.ntc-carousel__nav:focus {
 	outline: none;
 }
 
 .ntc-carousel__nav:active {
-	transform: translateY(-50%) scale(0.98);
+	border-color: var(--ntc-accent);
+	box-shadow:
+		0 14px 28px rgba(15, 23, 42, 0.18),
+		0 0 0 6px color-mix(in srgb, var(--ntc-accent) 40%, transparent);
+	transform: translateY(-50%) scale(0.96);
 }
 
 .ntc-carousel__nav:disabled {
@@ -228,7 +239,10 @@
 
 .ntc-carousel--theme-dark .ntc-carousel__nav:hover,
 .ntc-carousel--theme-dark .ntc-carousel__nav:focus-visible {
-	border-color: rgba(255, 184, 87, 0.4);
+	border-color: color-mix(in srgb, var(--ntc-accent) 55%, white);
+	box-shadow:
+		0 18px 36px rgba(0, 0, 0, 0.22),
+		0 0 0 4px color-mix(in srgb, var(--ntc-accent) 32%, transparent);
 }
 
 .ntc-card {

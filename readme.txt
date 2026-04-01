@@ -4,7 +4,7 @@ Tags: rss, feed, carousel, news, shortcode
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.7
+Stable tag: 1.0.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,10 @@ Yes. The settings page includes a **Refresh Cache** button.
 
 == Changelog ==
 
+= 1.0.8 =
+
+* Improved carousel arrow feedback so clicks show a short accent glow without leaving a stuck pressed state.
+
 = 1.0.7 =
 
 * Refined the mobile swipe animation for a more fluid, app-like feel.
@@ -86,6 +90,10 @@ Yes. The settings page includes a **Refresh Cache** button.
 * Updated documentation and packaging metadata.
 
 == Upgrade Notice ==
+
+= 1.0.8 =
+
+Recommended update with cleaner carousel arrow interaction states.
 
 = 1.0.7 =
 
