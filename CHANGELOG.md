@@ -6,6 +6,7 @@
 - Added the new preferred shortcode `[rss_carousel]`.
 - Kept legacy shortcode aliases for backward compatibility.
 - Refined release packaging workflow.
+- Added a reusable release build script for correct WordPress zip packages.
 
 ## 1.0.1 - 2026-04-01
 
