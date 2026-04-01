@@ -140,22 +140,11 @@ class NTC_Feed_Fetcher {
 	}
 
 	/**
-	 * Returns only the normalized items array.
-	 *
-	 * @return array
-	 */
-	public function get_items() {
-		$data = $this->get_feed_data();
-
-		return isset( $data['items'] ) && is_array( $data['items'] ) ? $data['items'] : array();
-	}
-
-	/**
 	 * Clears the cached feed data for the current settings.
 	 *
 	 * @return bool
 	 */
-	public function clear_cache() {
+	private function clear_cache() {
 		return $this->cache->delete( $this->settings->get_settings() );
 	}
 

@@ -86,7 +86,7 @@ class NTC_Cache {
 	 * @param array $settings Plugin settings.
 	 * @return string
 	 */
-	public function get_key( array $settings ) {
+	private function get_key( array $settings ) {
 		$normalized_settings = $this->sort_settings( $settings );
 
 		return self::TRANSIENT_PREFIX . md5( NTC_VERSION . '|' . wp_json_encode( $normalized_settings ) );

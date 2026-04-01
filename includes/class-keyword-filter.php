@@ -15,35 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class NTC_Keyword_Filter {
 
 	/**
-	 * Filters a list of normalized items to only keyword matches.
-	 *
-	 * @param array        $items    Normalized items.
-	 * @param string|array $keywords Keyword list.
-	 * @return array
-	 */
-	public function filter_items( array $items, $keywords ) {
-		$normalized_keywords = $this->normalize_keywords( $keywords );
-
-		if ( empty( $normalized_keywords ) ) {
-			return $items;
-		}
-
-		$filtered_items = array();
-
-		foreach ( $items as $item ) {
-			if ( ! is_array( $item ) ) {
-				continue;
-			}
-
-			if ( $this->get_item_keyword_score( $item, $normalized_keywords ) > 0 ) {
-				$filtered_items[] = $item;
-			}
-		}
-
-		return $filtered_items;
-	}
-
-	/**
 	 * Adds keyword priority metadata so matching items can be sorted first.
 	 *
 	 * @param array        $items    Normalized items.
