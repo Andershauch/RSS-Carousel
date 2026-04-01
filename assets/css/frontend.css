@@ -241,6 +241,7 @@
 	min-height: var(--ntc-card-height);
 	overflow: hidden;
 	position: relative;
+	transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
 }
 
 .ntc-card--clickable {
@@ -480,6 +481,21 @@
 }
 
 @media (max-width: 719px) {
+	.ntc-carousel.is-touch-dragging .ntc-card {
+		box-shadow: 0 18px 28px rgba(10, 28, 84, 0.08);
+		opacity: 0.92;
+		transform: scale(0.985);
+	}
+
+	.ntc-carousel.is-touch-dragging .ntc-carousel__track {
+		transition: transform 0.18s ease;
+	}
+
+	.ntc-carousel.is-touch-dragging .ntc-carousel__nav {
+		opacity: 0.7;
+		transform: scale(0.96);
+	}
+
 	.ntc-carousel__status {
 		flex-basis: 100%;
 		text-align: left;

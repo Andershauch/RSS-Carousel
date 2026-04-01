@@ -33,6 +33,7 @@
 		var dragState = {
 			active: false,
 			pointerId: null,
+			pointerType: '',
 			startX: 0,
 			startScrollLeft: 0,
 			moved: false,
@@ -208,12 +209,17 @@
 
 			dragState.active = true;
 			dragState.pointerId = event.pointerId;
+			dragState.pointerType = event.pointerType || '';
 			dragState.startX = event.clientX;
 			dragState.startScrollLeft = viewport.scrollLeft;
 			dragState.moved = false;
 
 			stopAutoplay();
 			viewport.classList.add('is-dragging');
+
+			if (dragState.pointerType === 'touch') {
+				root.classList.add('is-touch-dragging');
+			}
 
 			if (viewport.setPointerCapture) {
 				viewport.setPointerCapture(event.pointerId);
@@ -245,6 +251,7 @@
 
 			dragState.active = false;
 			viewport.classList.remove('is-dragging');
+			root.classList.remove('is-touch-dragging');
 
 			if (viewport.releasePointerCapture && null !== dragState.pointerId) {
 				try {
@@ -254,6 +261,7 @@
 			}
 
 			dragState.pointerId = null;
+			dragState.pointerType = '';
 
 			if (dragState.moved) {
 				snapToNearest();
