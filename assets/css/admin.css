@@ -1,0 +1,195 @@
+.ntc-admin {
+	--ntc-admin-bg: #ffffff;
+	--ntc-admin-surface: #ffffff;
+	--ntc-admin-border: rgba(10, 28, 84, 0.1);
+	--ntc-admin-heading: #0a1c54;
+	--ntc-admin-body: #7a7a7a;
+	--ntc-admin-accent: #f6fe08;
+	--ntc-admin-header: #0a1c54;
+	--ntc-admin-header-text: #ffffff;
+	--ntc-admin-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+	max-width: 1180px;
+	padding-right: 20px;
+}
+
+.ntc-admin h1,
+.ntc-admin h2,
+.ntc-admin .form-table th,
+.ntc-admin legend {
+	color: var(--ntc-admin-heading);
+}
+
+.ntc-admin p,
+.ntc-admin li,
+.ntc-admin .description,
+.ntc-admin .regular-text,
+.ntc-admin .large-text,
+.ntc-admin .small-text,
+.ntc-admin select {
+	color: var(--ntc-admin-body);
+}
+
+.ntc-admin__hero {
+	background: var(--ntc-admin-header);
+	border-radius: 20px;
+	box-shadow: var(--ntc-admin-shadow);
+	margin: 18px 0 20px;
+	overflow: hidden;
+}
+
+.ntc-admin__hero-content {
+	padding: 24px 28px;
+}
+
+.ntc-admin__hero h1 {
+	color: var(--ntc-admin-header-text);
+	font-size: 2rem;
+	line-height: 1.1;
+	margin: 0;
+}
+
+.ntc-admin__eyebrow {
+	color: var(--ntc-admin-accent);
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	margin: 0 0 10px;
+	text-transform: uppercase;
+}
+
+.ntc-admin__intro {
+	color: rgba(255, 255, 255, 0.88);
+	font-size: 1rem;
+	margin: 12px 0 0;
+	max-width: 62ch;
+}
+
+.ntc-admin__grid {
+	display: grid;
+	gap: 20px;
+}
+
+.ntc-admin__card {
+	background: var(--ntc-admin-surface);
+	border: 1px solid var(--ntc-admin-border);
+	border-radius: 20px;
+	box-shadow: var(--ntc-admin-shadow);
+	padding: 22px 24px;
+}
+
+.ntc-admin__card h2 {
+	font-size: 1.2rem;
+	margin: 0 0 10px;
+}
+
+.ntc-admin__manual-list {
+	margin: 0;
+	padding-left: 18px;
+}
+
+.ntc-admin__manual-list li + li {
+	margin-top: 8px;
+}
+
+.ntc-admin__shortcode-box {
+	align-items: center;
+	background: rgba(10, 28, 84, 0.04);
+	border: 1px solid var(--ntc-admin-border);
+	border-radius: 16px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-top: 18px;
+	padding: 14px 16px;
+}
+
+.ntc-admin__shortcode-label {
+	color: var(--ntc-admin-heading);
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.ntc-admin__shortcode-box code {
+	background: #ffffff;
+	border: 1px solid var(--ntc-admin-border);
+	border-radius: 999px;
+	color: var(--ntc-admin-heading);
+	font-size: 0.95rem;
+	padding: 8px 12px;
+}
+
+.ntc-admin .form-table {
+	margin-top: 4px;
+}
+
+.ntc-admin .form-table th {
+	font-size: 0.92rem;
+	font-weight: 700;
+	padding-top: 18px;
+}
+
+.ntc-admin .form-table td {
+	padding-top: 14px;
+}
+
+.ntc-admin .form-table input[type="text"],
+.ntc-admin .form-table input[type="number"],
+.ntc-admin .form-table select,
+.ntc-admin .form-table textarea {
+	border-color: rgba(10, 28, 84, 0.18);
+	border-radius: 12px;
+	box-shadow: none;
+}
+
+.ntc-admin .form-table textarea,
+.ntc-admin .form-table input[type="text"] {
+	max-width: 720px;
+}
+
+.ntc-admin .button-primary,
+.ntc-admin .button-secondary {
+	border-radius: 999px;
+	min-height: 40px;
+	padding: 0 16px;
+}
+
+.ntc-admin .button-primary {
+	background: var(--ntc-admin-header);
+	border-color: var(--ntc-admin-header);
+	color: var(--ntc-admin-accent);
+}
+
+.ntc-admin .button-primary:hover,
+.ntc-admin .button-primary:focus {
+	background: #10276f;
+	border-color: #10276f;
+	color: var(--ntc-admin-accent);
+}
+
+.ntc-admin .button-secondary {
+	border-color: rgba(10, 28, 84, 0.18);
+	color: var(--ntc-admin-heading);
+}
+
+.ntc-admin__card--cache p {
+	margin-top: 0;
+	max-width: 62ch;
+}
+
+@media (min-width: 1080px) {
+	.ntc-admin__grid {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+	}
+
+	.ntc-admin__card--manual,
+	.ntc-admin__card--cache {
+		grid-column: 1;
+	}
+
+	.ntc-admin__grid > .ntc-admin__card:nth-child(2) {
+		grid-column: 2;
+		grid-row: 1 / span 2;
+	}
+}

@@ -4,7 +4,7 @@ Tags: rss, feed, carousel, news, shortcode
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ RSS News Carousel lets you:
 
 Use the shortcode below anywhere shortcodes are supported:
 
-[news_topic_carousel]
+[rss_carousel]
 
 == Installation ==
 
@@ -30,13 +30,13 @@ Use the shortcode below anywhere shortcodes are supported:
 2. Activate **RSS News Carousel** in WordPress admin.
 3. Go to **Settings > RSS News Carousel**.
 4. Add your feed URLs and display settings.
-5. Insert `[news_topic_carousel]` into a page, post, or supported builder widget.
+5. Insert `[rss_carousel]` into a page, post, or supported builder widget.
 
 == Frequently Asked Questions ==
 
 = Does it work with Elementor? =
 
-Yes. Add Elementor's Shortcode widget and insert `[news_topic_carousel]`.
+Yes. Add Elementor's Shortcode widget and insert `[rss_carousel]`.
 
 = Does it fetch feeds on every page load? =
 
@@ -48,6 +48,13 @@ Yes. The settings page includes a **Refresh Cache** button.
 
 == Changelog ==
 
+= 1.0.2 =
+
+* Added a styled admin help/manual section on the settings page.
+* Introduced the new preferred shortcode `[rss_carousel]`.
+* Kept legacy shortcode aliases for backward compatibility.
+* Refined plugin packaging workflow for cleaner release zips.
+
 = 1.0.1 =
 
 * Prepared the plugin for release packaging.
@@ -57,6 +64,10 @@ Yes. The settings page includes a **Refresh Cache** button.
 * Updated documentation and packaging metadata.
 
 == Upgrade Notice ==
+
+= 1.0.2 =
+
+Recommended update with improved shortcode naming, admin guidance, and refreshed packaging.
 
 = 1.0.1 =
 

@@ -22,6 +22,13 @@ class NTC_Admin {
 	const CAPABILITY = 'manage_options';
 
 	/**
+	 * Admin stylesheet handle.
+	 *
+	 * @var string
+	 */
+	const ADMIN_STYLE_HANDLE = 'ntc-admin';
+
+	/**
 	 * Settings page slug.
 	 *
 	 * @var string
@@ -67,9 +74,32 @@ class NTC_Admin {
 	 */
 	public function register_hooks() {
 		add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_action( 'admin_notices', array( $this, 'render_invalid_feed_urls_notice' ) );
 		add_action( 'admin_notices', array( $this, 'render_cache_refresh_notice' ) );
 		add_action( 'admin_post_' . self::REFRESH_ACTION, array( $this, 'handle_refresh_cache' ) );
+	}
+
+	/**
+	 * Enqueues admin assets on the plugin settings page only.
+	 *
+	 * @param string $hook_suffix Current admin page hook.
+	 * @return void
+	 */
+	public function enqueue_assets( $hook_suffix ) {
+		if ( 'settings_page_' . self::PAGE_SLUG !== $hook_suffix ) {
+			return;
+		}
+
+		$style_path    = NTC_PLUGIN_PATH . 'assets/css/admin.css';
+		$style_version = file_exists( $style_path ) ? (string) filemtime( $style_path ) : NTC_VERSION;
+
+		wp_enqueue_style(
+			self::ADMIN_STYLE_HANDLE,
+			NTC_PLUGIN_URL . 'assets/css/admin.css',
+			array(),
+			$style_version
+		);
 	}
 
 	/**
@@ -99,29 +129,54 @@ class NTC_Admin {
 			);
 		}
 		?>
-		<div class="wrap">
-			<h1><?php echo esc_html__( 'RSS News Carousel', 'rss-news-carousel' ); ?></h1>
-			<p><?php echo esc_html__( 'Configure feed sources and display preferences for the carousel.', 'rss-news-carousel' ); ?></p>
+		<div class="wrap ntc-admin">
+			<div class="ntc-admin__hero">
+				<div class="ntc-admin__hero-content">
+					<p class="ntc-admin__eyebrow"><?php echo esc_html__( 'Live feed', 'rss-news-carousel' ); ?></p>
+					<h1><?php echo esc_html__( 'RSS News Carousel', 'rss-news-carousel' ); ?></h1>
+					<p class="ntc-admin__intro"><?php echo esc_html__( 'Configure feed sources, keyword priorities, layout settings, and cache tools for the carousel.', 'rss-news-carousel' ); ?></p>
+				</div>
+			</div>
+
 			<?php settings_errors( NTC_Settings::OPTION_NAME ); ?>
 
-			<form action="options.php" method="post">
-				<?php
-				settings_fields( NTC_Settings::OPTION_GROUP );
-				do_settings_sections( self::PAGE_SLUG );
-				submit_button( __( 'Save Settings', 'rss-news-carousel' ) );
-				?>
-			</form>
+			<div class="ntc-admin__grid">
+				<div class="ntc-admin__card ntc-admin__card--manual">
+					<h2><?php echo esc_html__( 'How to use this plugin', 'rss-news-carousel' ); ?></h2>
+					<ol class="ntc-admin__manual-list">
+						<li><?php echo esc_html__( 'Add one or more RSS or Atom feed URLs, one per line.', 'rss-news-carousel' ); ?></li>
+						<li><?php echo esc_html__( 'Add keywords separated by commas if you want matching stories to be prioritised first.', 'rss-news-carousel' ); ?></li>
+						<li><?php echo esc_html__( 'Choose how many items to show, how long they should be cached, and which parts of each card should be visible.', 'rss-news-carousel' ); ?></li>
+						<li><?php echo esc_html__( 'Adjust theme, layout, fonts, and colors to match your site.', 'rss-news-carousel' ); ?></li>
+						<li><?php echo esc_html__( 'Save the settings and place the shortcode on a page or in Elementor.', 'rss-news-carousel' ); ?></li>
+					</ol>
+					<div class="ntc-admin__shortcode-box">
+						<span class="ntc-admin__shortcode-label"><?php echo esc_html__( 'Shortcode', 'rss-news-carousel' ); ?></span>
+						<code>[rss_carousel]</code>
+					</div>
+				</div>
 
-			<hr />
+				<div class="ntc-admin__card">
+					<form action="options.php" method="post">
+						<?php
+						settings_fields( NTC_Settings::OPTION_GROUP );
+						do_settings_sections( self::PAGE_SLUG );
+						submit_button( __( 'Save Settings', 'rss-news-carousel' ) );
+						?>
+					</form>
+				</div>
 
-			<h2><?php echo esc_html__( 'Cache Tools', 'rss-news-carousel' ); ?></h2>
-			<p><?php echo esc_html__( 'Clear the current cached feed data and rebuild it immediately from the configured feeds.', 'rss-news-carousel' ); ?></p>
+				<div class="ntc-admin__card ntc-admin__card--cache">
+					<h2><?php echo esc_html__( 'Cache Tools', 'rss-news-carousel' ); ?></h2>
+					<p><?php echo esc_html__( 'Clear the current cached feed data and rebuild it immediately from the configured feeds.', 'rss-news-carousel' ); ?></p>
 
-			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">
-				<input type="hidden" name="action" value="<?php echo esc_attr( self::REFRESH_ACTION ); ?>" />
-				<?php wp_nonce_field( self::REFRESH_ACTION, 'ntc_refresh_cache_nonce' ); ?>
-				<?php submit_button( __( 'Refresh Cache', 'rss-news-carousel' ), 'secondary', 'submit', false ); ?>
-			</form>
+					<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">
+						<input type="hidden" name="action" value="<?php echo esc_attr( self::REFRESH_ACTION ); ?>" />
+						<?php wp_nonce_field( self::REFRESH_ACTION, 'ntc_refresh_cache_nonce' ); ?>
+						<?php submit_button( __( 'Refresh Cache', 'rss-news-carousel' ), 'secondary', 'submit', false ); ?>
+					</form>
+				</div>
+			</div>
 		</div>
 		<?php
 	}

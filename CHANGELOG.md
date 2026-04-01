@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2 - 2026-04-01
+
+- Added a styled admin help/manual section to the settings page.
+- Added the new preferred shortcode `[rss_carousel]`.
+- Kept legacy shortcode aliases for backward compatibility.
+- Refined release packaging workflow.
+
 ## 1.0.1 - 2026-04-01
 
 - Prepared the plugin for release packaging.

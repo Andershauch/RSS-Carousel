@@ -15,11 +15,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 class NTC_Shortcode {
 
 	/**
-	 * Shortcode tag.
+	 * Preferred shortcode tag.
 	 *
 	 * @var string
 	 */
-	const SHORTCODE_TAG = 'news_topic_carousel';
+	const SHORTCODE_TAG = 'rss_carousel';
+
+	/**
+	 * Supported shortcode aliases.
+	 *
+	 * @var string[]
+	 */
+	const SHORTCODE_ALIASES = array(
+		'RSS_Carousel',
+		'news_topic_carousel',
+	);
 
 	/**
 	 * Renderer instance.
@@ -89,6 +99,10 @@ class NTC_Shortcode {
 	 */
 	public function register_shortcode() {
 		add_shortcode( self::SHORTCODE_TAG, array( $this, 'render_shortcode' ) );
+
+		foreach ( self::SHORTCODE_ALIASES as $shortcode_tag ) {
+			add_shortcode( $shortcode_tag, array( $this, 'render_shortcode' ) );
+		}
 	}
 
 	/**

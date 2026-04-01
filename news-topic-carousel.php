@@ -2,7 +2,7 @@
 /**
  * Plugin Name: RSS News Carousel
  * Description: Displays filtered RSS and Atom feed items in a configurable news carousel.
- * Version:     1.0.1
+ * Version:     1.0.2
  * Author:      RSS News Carousel
  * License:     GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'NTC_VERSION', '1.0.1' );
+define( 'NTC_VERSION', '1.0.2' );
 define( 'NTC_PLUGIN_FILE', __FILE__ );
 define( 'NTC_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'NTC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
