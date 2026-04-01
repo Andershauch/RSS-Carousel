@@ -15,6 +15,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class NTC_Admin {
 
 	/**
+	 * Required admin capability.
+	 *
+	 * @var string
+	 */
+	const CAPABILITY = 'manage_options';
+
+	/**
 	 * Settings page slug.
 	 *
 	 * @var string
@@ -74,7 +81,7 @@ class NTC_Admin {
 		add_options_page(
 			__( 'RSS News Carousel', 'rss-news-carousel' ),
 			__( 'RSS News Carousel', 'rss-news-carousel' ),
-			'manage_options',
+			self::CAPABILITY,
 			self::PAGE_SLUG,
 			array( $this, 'render_settings_page' )
 		);
@@ -86,7 +93,7 @@ class NTC_Admin {
 	 * @return void
 	 */
 	public function render_settings_page() {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! $this->current_user_can_manage() ) {
 			wp_die(
 				esc_html__( 'You do not have permission to access this page.', 'rss-news-carousel' )
 			);
@@ -125,13 +132,7 @@ class NTC_Admin {
 	 * @return void
 	 */
 	public function render_invalid_feed_urls_notice() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
-
-		if ( self::PAGE_SLUG !== $page ) {
+		if ( ! $this->current_user_can_manage() || ! $this->is_settings_page_request() ) {
 			return;
 		}
 
@@ -162,7 +163,7 @@ class NTC_Admin {
 	 * @return void
 	 */
 	public function handle_refresh_cache() {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! $this->current_user_can_manage() ) {
 			wp_die(
 				esc_html__( 'You do not have permission to perform this action.', 'rss-news-carousel' )
 			);
@@ -186,11 +187,10 @@ class NTC_Admin {
 
 		$redirect_url = add_query_arg(
 			array(
-				'page'               => self::PAGE_SLUG,
 				'ntc_cache_refresh'  => $status,
 				'ntc_cache_items'    => count( $items ),
 			),
-			admin_url( 'options-general.php' )
+			$this->get_settings_page_url()
 		);
 
 		wp_safe_redirect( $redirect_url );
@@ -203,15 +203,13 @@ class NTC_Admin {
 	 * @return void
 	 */
 	public function render_cache_refresh_notice() {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! $this->current_user_can_manage() || ! $this->is_settings_page_request() ) {
 			return;
 		}
-
-		$page   = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 		$status = isset( $_GET['ntc_cache_refresh'] ) ? sanitize_key( wp_unslash( $_GET['ntc_cache_refresh'] ) ) : '';
 		$count  = isset( $_GET['ntc_cache_items'] ) ? absint( wp_unslash( $_GET['ntc_cache_items'] ) ) : 0;
 
-		if ( self::PAGE_SLUG !== $page || '' === $status ) {
+		if ( '' === $status ) {
 			return;
 		}
 
@@ -237,5 +235,39 @@ class NTC_Admin {
 			<p><?php echo esc_html( $message ); ?></p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Returns whether the current user may manage plugin settings.
+	 *
+	 * @return bool
+	 */
+	private function current_user_can_manage() {
+		return current_user_can( self::CAPABILITY );
+	}
+
+	/**
+	 * Returns whether the current request is for the plugin settings page.
+	 *
+	 * @return bool
+	 */
+	private function is_settings_page_request() {
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+		return self::PAGE_SLUG === $page;
+	}
+
+	/**
+	 * Returns the admin URL for the plugin settings page.
+	 *
+	 * @return string
+	 */
+	private function get_settings_page_url() {
+		return add_query_arg(
+			array(
+				'page' => self::PAGE_SLUG,
+			),
+			admin_url( 'options-general.php' )
+		);
 	}
 }

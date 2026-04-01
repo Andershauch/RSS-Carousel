@@ -68,6 +68,8 @@ class NTC_Settings {
 	 * @return void
 	 */
 	public function handle_settings_updated( $old_value, $new_value ) {
+		unset( $old_value, $new_value );
+
 		$cache = new NTC_Cache();
 
 		$cache->delete_all();
@@ -452,7 +454,7 @@ class NTC_Settings {
 			$url = esc_url_raw( $url );
 
 			if ( empty( $url ) || ! wp_http_validate_url( $url ) ) {
-				$invalid_urls[] = $line;
+				$invalid_urls[] = trim( $line );
 				continue;
 			}
 
