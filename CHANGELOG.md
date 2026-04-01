@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.6 - 2026-04-01
+
+- Improved mobile swipe feedback so the cards glide more naturally during touch drags.
+- Reworked the mobile header into a cleaner two-row layout.
+
 ## 1.0.5 - 2026-04-01
 
 - Repositioned mobile carousel arrows to keep them clear of the card footer.

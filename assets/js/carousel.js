@@ -36,6 +36,7 @@
 			pointerType: '',
 			startX: 0,
 			startScrollLeft: 0,
+			currentDeltaX: 0,
 			moved: false,
 			suppressClick: false
 		};
@@ -212,6 +213,7 @@
 			dragState.pointerType = event.pointerType || '';
 			dragState.startX = event.clientX;
 			dragState.startScrollLeft = viewport.scrollLeft;
+			dragState.currentDeltaX = 0;
 			dragState.moved = false;
 
 			stopAutoplay();
@@ -234,11 +236,16 @@
 			}
 
 			deltaX = event.clientX - dragState.startX;
+			dragState.currentDeltaX = deltaX;
 
 			if (Math.abs(deltaX) > 6) {
 				dragState.moved = true;
 				dragState.suppressClick = true;
 				event.preventDefault();
+			}
+
+			if (dragState.pointerType === 'touch') {
+				root.style.setProperty('--ntc-drag-offset', Math.max(-18, Math.min(18, deltaX * 0.12)) + 'px');
 			}
 
 			viewport.scrollLeft = dragState.startScrollLeft - deltaX;
@@ -252,6 +259,7 @@
 			dragState.active = false;
 			viewport.classList.remove('is-dragging');
 			root.classList.remove('is-touch-dragging');
+			root.style.setProperty('--ntc-drag-offset', '0px');
 
 			if (viewport.releasePointerCapture && null !== dragState.pointerId) {
 				try {
@@ -262,6 +270,7 @@
 
 			dragState.pointerId = null;
 			dragState.pointerType = '';
+			dragState.currentDeltaX = 0;
 
 			if (dragState.moved) {
 				snapToNearest();

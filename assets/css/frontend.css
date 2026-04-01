@@ -1,6 +1,7 @@
 .ntc-carousel {
 	--ntc-gap: 0.9rem;
 	--ntc-header-gap: 20px;
+	--ntc-drag-offset: 0px;
 	--ntc-visible-slides: 1;
 	--ntc-card-width: 300px;
 	--ntc-card-height: clamp(380px, calc(100vh - 160px), 460px);
@@ -484,21 +485,36 @@
 	.ntc-carousel.is-touch-dragging .ntc-card {
 		box-shadow: 0 18px 28px rgba(10, 28, 84, 0.08);
 		opacity: 0.92;
-		transform: scale(0.985);
+		transform: translateX(var(--ntc-drag-offset)) scale(0.985);
 	}
 
-	.ntc-carousel.is-touch-dragging .ntc-carousel__track {
-		transition: transform 0.18s ease;
+	.ntc-carousel.is-touch-dragging .ntc-card:nth-child(2n) {
+		transform: translateX(calc(var(--ntc-drag-offset) * 0.7)) scale(0.985);
 	}
 
-	.ntc-carousel.is-touch-dragging .ntc-carousel__nav {
-		opacity: 0.7;
-		transform: scale(0.96);
+	.ntc-carousel.is-touch-dragging .ntc-card:nth-child(3n) {
+		transform: translateX(calc(var(--ntc-drag-offset) * 0.5)) scale(0.985);
+	}
+
+	.ntc-carousel__heading-group {
+		gap: 0.5rem;
+	}
+
+	.ntc-carousel__heading-meta {
+		align-items: center;
+		gap: 0.75rem;
+		justify-content: space-between;
+	}
+
+	.ntc-carousel__title {
+		text-align: center;
 	}
 
 	.ntc-carousel__status {
-		flex-basis: 100%;
-		text-align: left;
+		flex: 0 0 auto;
+		margin-left: auto;
+		text-align: right;
+		white-space: nowrap;
 	}
 
 	.ntc-carousel__nav {
