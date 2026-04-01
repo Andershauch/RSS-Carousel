@@ -4,7 +4,7 @@ Tags: rss, feed, carousel, news, shortcode
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,10 @@ Yes. The settings page includes a **Refresh Cache** button.
 
 == Changelog ==
 
+= 1.0.5 =
+
+* Repositioned mobile carousel arrows so they no longer overlap the card footer.
+
 = 1.0.4 =
 
 * Added subtle touch-swipe feedback on mobile for a smoother carousel interaction.
@@ -73,6 +77,10 @@ Yes. The settings page includes a **Refresh Cache** button.
 * Updated documentation and packaging metadata.
 
 == Upgrade Notice ==
+
+= 1.0.5 =
+
+Recommended update with improved mobile carousel controls.
 
 = 1.0.4 =
 

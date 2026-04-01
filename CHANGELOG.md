@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.5 - 2026-04-01
+
+- Repositioned mobile carousel arrows to keep them clear of the card footer.
+
 ## 1.0.4 - 2026-04-01
 
 - Added subtle animated feedback during touch swipes on mobile.
