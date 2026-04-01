@@ -193,8 +193,12 @@
 			scrollToIndex(Math.min(getCurrentIndex(), getMaxStartIndex()));
 		}
 
+		function isBlockedPointerTarget(target) {
+			return !!target.closest('button, audio, video');
+		}
+
 		function onPointerDown(event) {
-			if (event.target.closest('a, button, audio, video')) {
+			if (isBlockedPointerTarget(event.target)) {
 				return;
 			}
 
@@ -228,6 +232,7 @@
 			if (Math.abs(deltaX) > 6) {
 				dragState.moved = true;
 				dragState.suppressClick = true;
+				event.preventDefault();
 			}
 
 			viewport.scrollLeft = dragState.startScrollLeft - deltaX;
