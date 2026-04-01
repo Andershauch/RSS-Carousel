@@ -2,6 +2,7 @@
 	--ntc-gap: 0.9rem;
 	--ntc-header-gap: 20px;
 	--ntc-drag-offset: 0px;
+	--ntc-drag-tilt: 0deg;
 	--ntc-visible-slides: 1;
 	--ntc-card-width: 300px;
 	--ntc-card-height: clamp(380px, calc(100vh - 160px), 460px);
@@ -242,7 +243,11 @@
 	min-height: var(--ntc-card-height);
 	overflow: hidden;
 	position: relative;
-	transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
+	transition:
+		transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+		box-shadow 0.24s ease,
+		opacity 0.24s ease;
+	will-change: transform;
 }
 
 .ntc-card--clickable {
@@ -484,16 +489,16 @@
 @media (max-width: 719px) {
 	.ntc-carousel.is-touch-dragging .ntc-card {
 		box-shadow: 0 18px 28px rgba(10, 28, 84, 0.08);
-		opacity: 0.92;
-		transform: translateX(var(--ntc-drag-offset)) scale(0.985);
+		opacity: 0.94;
+		transform: translate3d(var(--ntc-drag-offset), 0, 0) scale(0.986) rotate(var(--ntc-drag-tilt));
 	}
 
 	.ntc-carousel.is-touch-dragging .ntc-card:nth-child(2n) {
-		transform: translateX(calc(var(--ntc-drag-offset) * 0.7)) scale(0.985);
+		transform: translate3d(calc(var(--ntc-drag-offset) * 0.78), 0, 0) scale(0.987) rotate(calc(var(--ntc-drag-tilt) * 0.7));
 	}
 
 	.ntc-carousel.is-touch-dragging .ntc-card:nth-child(3n) {
-		transform: translateX(calc(var(--ntc-drag-offset) * 0.5)) scale(0.985);
+		transform: translate3d(calc(var(--ntc-drag-offset) * 0.62), 0, 0) scale(0.988) rotate(calc(var(--ntc-drag-tilt) * 0.45));
 	}
 
 	.ntc-carousel__heading-group {

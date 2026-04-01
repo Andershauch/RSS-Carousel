@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.7 - 2026-04-01
+
+- Refined the mobile swipe animation for a more fluid, app-like feel.
+
 ## 1.0.6 - 2026-04-01
 
 - Improved mobile swipe feedback so the cards glide more naturally during touch drags.

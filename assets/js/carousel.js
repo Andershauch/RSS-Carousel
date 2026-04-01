@@ -245,7 +245,8 @@
 			}
 
 			if (dragState.pointerType === 'touch') {
-				root.style.setProperty('--ntc-drag-offset', Math.max(-18, Math.min(18, deltaX * 0.12)) + 'px');
+				root.style.setProperty('--ntc-drag-offset', Math.max(-26, Math.min(26, deltaX * 0.18)) + 'px');
+				root.style.setProperty('--ntc-drag-tilt', Math.max(-1.2, Math.min(1.2, deltaX * 0.008)) + 'deg');
 			}
 
 			viewport.scrollLeft = dragState.startScrollLeft - deltaX;
@@ -260,6 +261,7 @@
 			viewport.classList.remove('is-dragging');
 			root.classList.remove('is-touch-dragging');
 			root.style.setProperty('--ntc-drag-offset', '0px');
+			root.style.setProperty('--ntc-drag-tilt', '0deg');
 
 			if (viewport.releasePointerCapture && null !== dragState.pointerId) {
 				try {
