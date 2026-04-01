@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3 - 2026-04-01
+
+- Restored mobile swipe support when carousel cards are fully clickable.
+- Bumped the plugin version and refreshed the release package.
+
 ## 1.0.2 - 2026-04-01
 
 - Added a styled admin help/manual section to the settings page.

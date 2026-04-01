@@ -4,7 +4,7 @@ Tags: rss, feed, carousel, news, shortcode
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,11 @@ Yes. The settings page includes a **Refresh Cache** button.
 
 == Changelog ==
 
+= 1.0.3 =
+
+* Restored swipe support on mobile when cards are fully clickable.
+* Updated release packaging and versioning for the latest stable build.
+
 = 1.0.2 =
 
 * Added a styled admin help/manual section on the settings page.
@@ -64,6 +69,10 @@ Yes. The settings page includes a **Refresh Cache** button.
 * Updated documentation and packaging metadata.
 
 == Upgrade Notice ==
+
+= 1.0.3 =
+
+Recommended update with restored mobile swipe support and refreshed release packaging.
 
 = 1.0.2 =
 
