@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.2 - 2026-04-02
+
+- Added a first-run mobile swipe hint so users can immediately see that the carousel supports swiping.
+- Smoothed the mobile swipe motion with a gentler, more horizontal transition.
+
 ## 1.1.1 - 2026-04-02
 
 - Removed the mobile navigation arrows so small-screen users rely on swipe and autoplay only.

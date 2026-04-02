@@ -13,6 +13,7 @@
 		var autoplayEnabled = root.getAttribute('data-autoplay') === 'true' && !prefersReducedMotion;
 		var timerId = null;
 		var swipeCommitTimerId = null;
+		var swipeHintTimerId = null;
 		var dragState = {
 			active: false,
 			pointerId: null,
@@ -87,6 +88,10 @@
 
 		function getScrollBehavior() {
 			return prefersReducedMotion ? 'auto' : 'smooth';
+		}
+
+		function isMobileViewport() {
+			return window.matchMedia('(max-width: 719px)').matches;
 		}
 
 		function getActiveSlideWidth() {
@@ -188,6 +193,66 @@
 			}
 		}
 
+		function hasSeenSwipeHint() {
+			try {
+				return window.localStorage.getItem('ntcSwipeHintSeen') === '1';
+			} catch (error) {
+				return false;
+			}
+		}
+
+		function markSwipeHintSeen() {
+			try {
+				window.localStorage.setItem('ntcSwipeHintSeen', '1');
+			} catch (error) {
+			}
+		}
+
+		function ensureSwipeHint() {
+			var existingHint = root.querySelector('.ntc-carousel__swipe-hint');
+			var hint;
+
+			if (existingHint) {
+				return existingHint;
+			}
+
+			hint = document.createElement('div');
+			hint.className = 'ntc-carousel__swipe-hint';
+			hint.setAttribute('aria-hidden', 'true');
+			hint.innerHTML =
+				'<span class="ntc-carousel__swipe-hint-arrow ntc-carousel__swipe-hint-arrow--left">&#10094;</span>' +
+				'<span class="ntc-carousel__swipe-hint-label">Swipe</span>' +
+				'<span class="ntc-carousel__swipe-hint-arrow ntc-carousel__swipe-hint-arrow--right">&#10095;</span>';
+
+			root.appendChild(hint);
+
+			return hint;
+		}
+
+		function hideSwipeHint() {
+			root.classList.remove('is-swipe-hint-visible');
+
+			if (swipeHintTimerId) {
+				window.clearTimeout(swipeHintTimerId);
+				swipeHintTimerId = null;
+			}
+		}
+
+		function maybeShowSwipeHint() {
+			if (prefersReducedMotion || !isMobileViewport() || slides.length < 2 || hasSeenSwipeHint()) {
+				return;
+			}
+
+			ensureSwipeHint();
+			root.classList.add('is-swipe-hint-visible');
+			markSwipeHintSeen();
+
+			swipeHintTimerId = window.setTimeout(function () {
+				root.classList.remove('is-swipe-hint-visible');
+				swipeHintTimerId = null;
+			}, 2600);
+		}
+
 		function triggerSwipeCommit(direction) {
 			var className = direction === 'next' ? 'is-swipe-committing-next' : 'is-swipe-committing-prev';
 
@@ -208,7 +273,7 @@
 			var threshold = getSwipeThreshold();
 			var progress = threshold ? Math.min(1.2, Math.abs(deltaX) / threshold) : 0;
 			var offset = Math.max(-44, Math.min(44, deltaX * 0.32));
-			var tilt = Math.max(-1.8, Math.min(1.8, deltaX * 0.012));
+			var tilt = Math.max(-0.45, Math.min(0.45, deltaX * 0.0038));
 
 			root.style.setProperty('--ntc-drag-offset', offset + 'px');
 			root.style.setProperty('--ntc-drag-tilt', tilt + 'deg');
@@ -267,6 +332,7 @@
 
 			stopAutoplay();
 			clearSwipeCommitClasses();
+			hideSwipeHint();
 			viewport.classList.add('is-dragging');
 
 			if (dragState.pointerType === 'touch') {
@@ -459,7 +525,10 @@
 
 		root.addEventListener('mouseenter', stopAutoplay);
 		root.addEventListener('mouseleave', startAutoplay);
-		root.addEventListener('focusin', stopAutoplay);
+		root.addEventListener('focusin', function () {
+			hideSwipeHint();
+			stopAutoplay();
+		});
 		root.addEventListener('focusout', startAutoplay);
 
 		viewport.addEventListener('keydown', function (event) {
@@ -490,6 +559,7 @@
 
 		updateNavigationState();
 		startAutoplay();
+		window.setTimeout(maybeShowSwipeHint, 550);
 	}
 
 	document.addEventListener('DOMContentLoaded', function () {

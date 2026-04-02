@@ -193,6 +193,57 @@
 	-webkit-tap-highlight-color: transparent;
 }
 
+.ntc-carousel__swipe-hint {
+	align-items: center;
+	background: color-mix(in srgb, var(--ntc-header-bg) 92%, transparent);
+	border: 1px solid color-mix(in srgb, var(--ntc-accent) 55%, transparent);
+	border-radius: 999px;
+	box-shadow: 0 18px 32px rgba(10, 28, 84, 0.2);
+	color: var(--ntc-header-text-color);
+	display: none;
+	gap: 10px;
+	left: 50%;
+	opacity: 0;
+	padding: 8px 14px;
+	pointer-events: none;
+	position: absolute;
+	top: calc(50% + 6px);
+	transform: translate(-50%, 10px);
+	transition: opacity 0.22s ease, transform 0.22s ease;
+	white-space: nowrap;
+	z-index: 4;
+}
+
+.ntc-carousel__swipe-hint-label {
+	color: var(--ntc-accent);
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+.ntc-carousel__swipe-hint-arrow {
+	color: var(--ntc-accent);
+	display: inline-flex;
+	font-size: 1rem;
+	font-weight: 700;
+	line-height: 1;
+}
+
+.ntc-carousel__swipe-hint-arrow--left {
+	animation: ntc-swipe-hint-left 1.2s ease-in-out infinite;
+}
+
+.ntc-carousel__swipe-hint-arrow--right {
+	animation: ntc-swipe-hint-right 1.2s ease-in-out infinite;
+}
+
+.ntc-carousel.is-swipe-hint-visible .ntc-carousel__swipe-hint {
+	opacity: 1;
+	transform: translate(-50%, 0);
+}
+
 .ntc-carousel__nav:focus-visible {
 	background: var(--ntc-header-bg);
 	border-color: var(--ntc-accent);
@@ -518,6 +569,10 @@
 }
 
 @media (max-width: 719px) {
+	.ntc-carousel__swipe-hint {
+		display: inline-flex;
+	}
+
 	.ntc-carousel__body {
 		padding: 0 !important;
 	}
@@ -525,15 +580,15 @@
 	.ntc-carousel.is-touch-dragging .ntc-card {
 		box-shadow: 0 22px 34px rgba(10, 28, 84, 0.12);
 		opacity: calc(1 - (var(--ntc-drag-progress) * 0.12));
-		transform: translate3d(var(--ntc-drag-offset), 0, 0) scale(0.978) rotate(var(--ntc-drag-tilt));
+		transform: translate3d(var(--ntc-drag-offset), 0, 0) scale(0.982) rotate(var(--ntc-drag-tilt));
 	}
 
 	.ntc-carousel.is-touch-dragging .ntc-card:nth-child(2n) {
-		transform: translate3d(calc(var(--ntc-drag-offset) * 0.74), 0, 0) scale(0.982) rotate(calc(var(--ntc-drag-tilt) * 0.72));
+		transform: translate3d(calc(var(--ntc-drag-offset) * 0.76), 0, 0) scale(0.985) rotate(calc(var(--ntc-drag-tilt) * 0.72));
 	}
 
 	.ntc-carousel.is-touch-dragging .ntc-card:nth-child(3n) {
-		transform: translate3d(calc(var(--ntc-drag-offset) * 0.58), 0, 0) scale(0.985) rotate(calc(var(--ntc-drag-tilt) * 0.48));
+		transform: translate3d(calc(var(--ntc-drag-offset) * 0.62), 0, 0) scale(0.988) rotate(calc(var(--ntc-drag-tilt) * 0.52));
 	}
 
 	.ntc-carousel.is-swipe-committing-next .ntc-card {
@@ -600,12 +655,12 @@
 @keyframes ntc-mobile-swipe-next {
 	0% {
 		opacity: 0.96;
-		transform: translate3d(calc(var(--ntc-drag-offset) * 0.6), 0, 0) scale(0.982) rotate(calc(var(--ntc-drag-tilt) * 0.55));
+		transform: translate3d(calc(var(--ntc-drag-offset) * 0.5), 0, 0) scale(0.984) rotate(calc(var(--ntc-drag-tilt) * 0.35));
 	}
 
 	46% {
-		opacity: 0.68;
-		transform: translate3d(-64px, 0, 0) scale(0.948) rotate(-1.8deg);
+		opacity: 0.72;
+		transform: translate3d(-72px, 0, 0) scale(0.956) rotate(-0.35deg);
 	}
 
 	100% {
@@ -617,16 +672,42 @@
 @keyframes ntc-mobile-swipe-prev {
 	0% {
 		opacity: 0.96;
-		transform: translate3d(calc(var(--ntc-drag-offset) * 0.6), 0, 0) scale(0.982) rotate(calc(var(--ntc-drag-tilt) * 0.55));
+		transform: translate3d(calc(var(--ntc-drag-offset) * 0.5), 0, 0) scale(0.984) rotate(calc(var(--ntc-drag-tilt) * 0.35));
 	}
 
 	46% {
-		opacity: 0.68;
-		transform: translate3d(64px, 0, 0) scale(0.948) rotate(1.8deg);
+		opacity: 0.72;
+		transform: translate3d(72px, 0, 0) scale(0.956) rotate(0.35deg);
 	}
 
 	100% {
 		opacity: 1;
 		transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+	}
+}
+
+@keyframes ntc-swipe-hint-left {
+	0%,
+	100% {
+		opacity: 0.45;
+		transform: translateX(0);
+	}
+
+	50% {
+		opacity: 1;
+		transform: translateX(-5px);
+	}
+}
+
+@keyframes ntc-swipe-hint-right {
+	0%,
+	100% {
+		opacity: 0.45;
+		transform: translateX(0);
+	}
+
+	50% {
+		opacity: 1;
+		transform: translateX(5px);
 	}
 }
