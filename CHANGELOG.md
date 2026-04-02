@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 - 2026-04-02
+
+- Added customizable frontend text settings for the carousel eyebrow, heading, and read-more label.
+- Reworked the carousel header, spacing system, footer alignment, and side navigation placement across mobile and desktop.
+- Improved mobile swipe behavior with stronger gesture feedback and kept the read-more link as the only clickable card action.
+
 ## 1.0.8 - 2026-04-01
 
 - Improved carousel arrow feedback so clicks show a short accent glow without leaving a stuck pressed state.

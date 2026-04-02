@@ -229,6 +229,33 @@ class NTC_Settings {
 		);
 
 		$this->register_field(
+			'header_eyebrow_text',
+			__( 'Eyebrow text', 'rss-news-carousel' ),
+			array( $this, 'render_text_field' ),
+			array(
+				'description' => __( 'Text shown above the main carousel heading.', 'rss-news-carousel' ),
+			)
+		);
+
+		$this->register_field(
+			'header_title_text',
+			__( 'Heading text', 'rss-news-carousel' ),
+			array( $this, 'render_text_field' ),
+			array(
+				'description' => __( 'Main heading shown at the top of the carousel.', 'rss-news-carousel' ),
+			)
+		);
+
+		$this->register_field(
+			'read_more_text',
+			__( 'Read more text', 'rss-news-carousel' ),
+			array( $this, 'render_text_field' ),
+			array(
+				'description' => __( 'Label used for the read-more link in each card footer.', 'rss-news-carousel' ),
+			)
+		);
+
+		$this->register_field(
 			'heading_font',
 			__( 'Heading font', 'rss-news-carousel' ),
 			array( $this, 'render_select_field' ),
@@ -352,6 +379,9 @@ class NTC_Settings {
 			'autoplay'                => 0,
 			'theme'                   => 'light',
 			'layout'                  => 'cards',
+			'header_eyebrow_text'     => 'TOTTENHAM LIVE FEED',
+			'header_title_text'       => 'SENESTE NYHEDER OM DIT YNDLINGSHOLD',
+			'read_more_text'          => 'LÆS MERE',
 			'heading_font'            => 'apex',
 			'body_font'               => 'apex',
 			'heading_color'           => '#0a1c54',
@@ -416,6 +446,9 @@ class NTC_Settings {
 		$output['autoplay']                = $this->sanitize_checkbox( $input, 'autoplay' );
 		$output['theme']                   = $this->sanitize_choice( $input, 'theme', array( 'light', 'dark' ), $defaults['theme'] );
 		$output['layout']                  = $this->sanitize_choice( $input, 'layout', array( 'compact', 'cards', 'hero' ), $defaults['layout'] );
+		$output['header_eyebrow_text']     = $this->sanitize_text_setting( $input, 'header_eyebrow_text', $defaults['header_eyebrow_text'] );
+		$output['header_title_text']       = $this->sanitize_text_setting( $input, 'header_title_text', $defaults['header_title_text'] );
+		$output['read_more_text']          = $this->sanitize_text_setting( $input, 'read_more_text', $defaults['read_more_text'] );
 		$output['heading_font']            = $this->sanitize_choice( $input, 'heading_font', array_keys( $this->get_heading_font_options() ), $defaults['heading_font'] );
 		$output['body_font']               = $this->sanitize_choice( $input, 'body_font', array_keys( $this->get_body_font_options() ), $defaults['body_font'] );
 		$output['heading_color']           = $this->sanitize_color( $input, 'heading_color', $defaults['heading_color'] );
@@ -592,6 +625,28 @@ class NTC_Settings {
 	}
 
 	/**
+	 * Sanitizes a single-line text setting.
+	 *
+	 * @param array  $input   Raw option input.
+	 * @param string $key     Array key.
+	 * @param string $default Default fallback value.
+	 * @return string
+	 */
+	private function sanitize_text_setting( array $input, $key, $default ) {
+		if ( ! isset( $input[ $key ] ) ) {
+			return $default;
+		}
+
+		$value = sanitize_text_field( wp_unslash( $input[ $key ] ) );
+
+		if ( '' === $value ) {
+			return $default;
+		}
+
+		return $value;
+	}
+
+	/**
 	 * Sanitizes a hex color field.
 	 *
 	 * @param array  $input   Raw option input.
@@ -634,6 +689,9 @@ class NTC_Settings {
 			'cache_minutes' => __( 'Cache duration', 'rss-news-carousel' ),
 			'theme'         => __( 'Theme', 'rss-news-carousel' ),
 			'layout'        => __( 'Layout', 'rss-news-carousel' ),
+			'header_eyebrow_text' => __( 'Eyebrow text', 'rss-news-carousel' ),
+			'header_title_text'   => __( 'Heading text', 'rss-news-carousel' ),
+			'read_more_text'      => __( 'Read more text', 'rss-news-carousel' ),
 			'heading_font'  => __( 'Heading font', 'rss-news-carousel' ),
 			'body_font'     => __( 'Body font', 'rss-news-carousel' ),
 			'heading_color' => __( 'Heading color', 'rss-news-carousel' ),

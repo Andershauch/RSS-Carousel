@@ -46,15 +46,17 @@ class NTC_Renderer {
 	 * @return string
 	 */
 	public function render( array $atts = array() ) {
-		$settings       = $this->settings->get_settings();
-		$data           = $this->feed_fetcher->get_feed_data();
-		$items          = isset( $data['items'] ) && is_array( $data['items'] ) ? $data['items'] : array();
-		$item_count     = count( $items );
-		$theme          = $this->sanitize_theme( $settings );
-		$layout         = $this->sanitize_layout( $settings );
-		$autoplay       = ! empty( $settings['autoplay'] );
-		$block_id       = $this->generate_block_id();
-		$inline_style   = $this->get_inline_style( $settings );
+		$settings        = $this->settings->get_settings();
+		$data            = $this->feed_fetcher->get_feed_data();
+		$items           = isset( $data['items'] ) && is_array( $data['items'] ) ? $data['items'] : array();
+		$item_count      = count( $items );
+		$theme           = $this->sanitize_theme( $settings );
+		$layout          = $this->sanitize_layout( $settings );
+		$autoplay        = ! empty( $settings['autoplay'] );
+		$block_id        = $this->generate_block_id();
+		$inline_style    = $this->get_inline_style( $settings );
+		$eyebrow_text    = $this->get_display_text( $settings, 'header_eyebrow_text', 'TOTTENHAM LIVE FEED' );
+		$heading_text    = $this->get_display_text( $settings, 'header_title_text', 'SENESTE NYHEDER OM DIT YNDLINGSHOLD' );
 		$section_classes = array(
 			'ntc-carousel',
 			'ntc-carousel--theme-' . $theme,
@@ -80,23 +82,8 @@ class NTC_Renderer {
 		>
 			<div class="ntc-carousel__header">
 				<div class="ntc-carousel__heading-group">
-					<div class="ntc-carousel__heading-meta">
-						<p class="ntc-carousel__eyebrow"><?php echo esc_html__( 'Live feed', 'rss-news-carousel' ); ?></p>
-						<p class="ntc-carousel__status" data-role="status" aria-live="polite">
-							<?php
-							echo esc_html(
-								sprintf(
-									/* translators: 1: first visible slide, 2: last visible slide, 3: total slides */
-									__( 'Showing %1$d-%2$d of %3$d', 'rss-news-carousel' ),
-									1,
-									1,
-									$item_count
-								)
-							);
-							?>
-						</p>
-					</div>
-					<h2 class="ntc-carousel__title"><?php echo esc_html__( 'Seneste nyheder om dit yndlingshold', 'rss-news-carousel' ); ?></h2>
+					<p class="ntc-carousel__eyebrow"><?php echo esc_html( $eyebrow_text ); ?></p>
+					<h2 class="ntc-carousel__title"><?php echo esc_html( $heading_text ); ?></h2>
 				</div>
 			</div>
 
@@ -163,15 +150,11 @@ class NTC_Renderer {
 		$show_excerpt     = ! empty( $settings['show_excerpt'] ) && '' !== $excerpt;
 		$display_title    = '' !== $title ? $title : __( 'Untitled news item', 'rss-news-carousel' );
 		$display_excerpt  = $show_excerpt ? wp_trim_words( $excerpt, 18, '&hellip;' ) : '';
+		$read_more_text   = $this->get_display_text( $settings, 'read_more_text', 'LÆS MERE' );
 		$date_markup      = $show_date ? $this->get_date_markup( $published_at ) : '';
 		$media_markup     = $show_media ? $this->get_media_markup( $media_type, $media_url, $image, $display_title ) : '';
 		$keyword_markup   = $this->get_matched_keywords_markup( $matched_keywords );
 		$card_classes     = array( 'ntc-card' );
-		$is_card_linkable = ! empty( $url ) && ! in_array( $media_type, array( 'audio', 'video' ), true );
-
-		if ( $is_card_linkable ) {
-			$card_classes[] = 'ntc-card--clickable';
-		}
 
 		ob_start();
 		?>
@@ -182,16 +165,6 @@ class NTC_Renderer {
 			aria-roledescription="<?php echo esc_attr__( 'slide', 'rss-news-carousel' ); ?>"
 		>
 			<article class="<?php echo esc_attr( implode( ' ', $card_classes ) ); ?>">
-				<?php if ( $is_card_linkable ) : ?>
-					<a
-						class="ntc-card__card-link"
-						href="<?php echo esc_url( $url ); ?>"
-						target="_blank"
-						rel="noopener noreferrer"
-						aria-label="<?php echo esc_attr( sprintf( __( 'Open story: %s', 'rss-news-carousel' ), $display_title ) ); ?>"
-					>
-				<?php endif; ?>
-
 				<?php echo $media_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 				<div class="ntc-card__content">
@@ -206,37 +179,23 @@ class NTC_Renderer {
 						</p>
 					<?php endif; ?>
 
-					<h3 class="ntc-card__title">
-						<?php if ( ! $is_card_linkable && ! empty( $url ) ) : ?>
-							<a href="<?php echo esc_url( $url ); ?>" target="_blank" rel="noopener noreferrer">
-								<?php echo esc_html( $display_title ); ?>
-							</a>
-						<?php else : ?>
-							<?php echo esc_html( $display_title ); ?>
-						<?php endif; ?>
-					</h3>
+					<h3 class="ntc-card__title"><?php echo esc_html( $display_title ); ?></h3>
 
 					<?php if ( $show_excerpt ) : ?>
 						<p class="ntc-card__excerpt"><?php echo esc_html( $display_excerpt ); ?></p>
 					<?php endif; ?>
 
-					<?php if ( ! empty( $url ) ) : ?>
+					<?php if ( ! empty( $url ) || '' !== $keyword_markup ) : ?>
 						<div class="ntc-card__footer">
-							<?php if ( ! $is_card_linkable ) : ?>
+							<?php if ( ! empty( $url ) ) : ?>
 								<a class="ntc-card__link" href="<?php echo esc_url( $url ); ?>" target="_blank" rel="noopener noreferrer">
-									<?php echo esc_html__( 'Læs mere', 'rss-news-carousel' ); ?>
+									<?php echo esc_html( $read_more_text ); ?>
 								</a>
-							<?php else : ?>
-								<span class="ntc-card__link"><?php echo esc_html__( 'Læs mere', 'rss-news-carousel' ); ?></span>
 							<?php endif; ?>
 							<?php echo $keyword_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 						</div>
 					<?php endif; ?>
 				</div>
-
-				<?php if ( $is_card_linkable ) : ?>
-					</a>
-				<?php endif; ?>
 			</article>
 		</li>
 		<?php
@@ -376,6 +335,24 @@ class NTC_Renderer {
 		}
 
 		return '#' . $keyword;
+	}
+
+	/**
+	 * Returns a settings-based text value with a fallback.
+	 *
+	 * @param array  $settings Plugin settings.
+	 * @param string $key      Setting key.
+	 * @param string $fallback Fallback text.
+	 * @return string
+	 */
+	private function get_display_text( array $settings, $key, $fallback ) {
+		$value = isset( $settings[ $key ] ) ? sanitize_text_field( (string) $settings[ $key ] ) : '';
+
+		if ( '' === $value ) {
+			return $fallback;
+		}
+
+		return $value;
 	}
 
 	/**

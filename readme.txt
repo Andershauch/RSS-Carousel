@@ -4,7 +4,7 @@ Tags: rss, feed, carousel, news, shortcode
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.8
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,12 @@ Yes. The settings page includes a **Refresh Cache** button.
 
 == Changelog ==
 
+= 1.1.0 =
+
+* Added customizable frontend text settings for the carousel header and read-more link.
+* Reworked the mobile and desktop carousel layout, spacing, and navigation placement.
+* Improved mobile swipe behavior and made the read-more link the only clickable card action.
+
 = 1.0.8 =
 
 * Improved carousel arrow feedback so clicks show a short accent glow without leaving a stuck pressed state.
@@ -90,6 +96,10 @@ Yes. The settings page includes a **Refresh Cache** button.
 * Updated documentation and packaging metadata.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+
+Recommended update with the new customizable text settings, carousel layout polish, and improved mobile swipe behavior.
 
 = 1.0.8 =
 

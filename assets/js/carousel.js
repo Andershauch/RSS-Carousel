@@ -1,23 +1,6 @@
 (function () {
 	'use strict';
 
-	var i18n = window.wp && window.wp.i18n ? window.wp.i18n : {};
-	var __ = i18n.__
-		? i18n.__
-		: function (text) {
-			return text;
-		};
-	var sprintf = i18n.sprintf
-		? i18n.sprintf
-		: function (text) {
-			var output = text;
-
-			Array.prototype.slice.call(arguments, 1).forEach(function (value, index) {
-				output = output.replace('%' + (index + 1) + '$d', value);
-			});
-
-			return output;
-		};
 	var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 	function createCarousel(root) {
@@ -26,24 +9,27 @@
 		var slides = track ? Array.prototype.slice.call(track.querySelectorAll('.ntc-carousel__slide')) : [];
 		var prevButton = root.querySelector('[data-action="prev"]');
 		var nextButton = root.querySelector('[data-action="next"]');
-		var status = root.querySelector('[data-role="status"]');
+		var supportsPointerEvents = typeof window.PointerEvent !== 'undefined';
 		var autoplayEnabled = root.getAttribute('data-autoplay') === 'true' && !prefersReducedMotion;
 		var timerId = null;
-		var scrollTimerId = null;
+		var swipeCommitTimerId = null;
 		var dragState = {
 			active: false,
 			pointerId: null,
 			pointerType: '',
 			startX: 0,
+			startTime: 0,
 			startScrollLeft: 0,
 			currentDeltaX: 0,
+			lastClientX: 0,
+			lastTimestamp: 0,
+			velocityX: 0,
 			moved: false,
 			suppressClick: false
 		};
 
 		if (!viewport || !track || slides.length < 2) {
 			disableControls();
-			updateStatus();
 			return;
 		}
 
@@ -103,7 +89,25 @@
 			return prefersReducedMotion ? 'auto' : 'smooth';
 		}
 
-		function scrollToIndex(index) {
+		function getActiveSlideWidth() {
+			if (!slides.length) {
+				return 0;
+			}
+
+			return slides[0].getBoundingClientRect().width;
+		}
+
+		function getSwipeThreshold() {
+			var slideWidth = getActiveSlideWidth();
+
+			if (!slideWidth) {
+				return 44;
+			}
+
+			return Math.max(42, Math.min(96, slideWidth * 0.16));
+		}
+
+		function scrollToIndex(index, behavior) {
 			var target = slides[index];
 
 			if (!target) {
@@ -112,29 +116,8 @@
 
 			viewport.scrollTo({
 				left: target.offsetLeft,
-				behavior: getScrollBehavior()
+				behavior: behavior || getScrollBehavior()
 			});
-		}
-
-		function updateStatus() {
-			var currentIndex;
-			var visibleSlides;
-			var lastVisible;
-
-			if (!status) {
-				return;
-			}
-
-			currentIndex = getCurrentIndex();
-			visibleSlides = getVisibleSlides();
-			lastVisible = Math.min(slides.length, currentIndex + visibleSlides);
-
-			status.textContent = sprintf(
-				__('Showing %1$d-%2$d of %3$d', 'rss-news-carousel'),
-				currentIndex + 1,
-				lastVisible,
-				slides.length
-			);
 		}
 
 		function updateNavigationState() {
@@ -168,7 +151,7 @@
 			}, 5000);
 		}
 
-		function handlePrev() {
+		function handlePrev(behavior) {
 			var currentIndex = Math.min(getCurrentIndex(), getMaxStartIndex());
 			var targetIndex = currentIndex - 1;
 
@@ -176,10 +159,10 @@
 				targetIndex = getMaxStartIndex();
 			}
 
-			scrollToIndex(targetIndex);
+			scrollToIndex(targetIndex, behavior);
 		}
 
-		function handleNext() {
+		function handleNext(behavior) {
 			var maxStartIndex = getMaxStartIndex();
 			var currentIndex = Math.min(getCurrentIndex(), maxStartIndex);
 			var targetIndex = currentIndex + 1;
@@ -188,15 +171,77 @@
 				targetIndex = 0;
 			}
 
-			scrollToIndex(targetIndex);
+			scrollToIndex(targetIndex, behavior);
 		}
 
 		function snapToNearest() {
 			scrollToIndex(Math.min(getCurrentIndex(), getMaxStartIndex()));
 		}
 
+		function clearSwipeCommitClasses() {
+			root.classList.remove('is-swipe-committing-next');
+			root.classList.remove('is-swipe-committing-prev');
+
+			if (swipeCommitTimerId) {
+				window.clearTimeout(swipeCommitTimerId);
+				swipeCommitTimerId = null;
+			}
+		}
+
+		function triggerSwipeCommit(direction) {
+			var className = direction === 'next' ? 'is-swipe-committing-next' : 'is-swipe-committing-prev';
+
+			if (prefersReducedMotion) {
+				return;
+			}
+
+			clearSwipeCommitClasses();
+			root.classList.add(className);
+
+			swipeCommitTimerId = window.setTimeout(function () {
+				root.classList.remove(className);
+				swipeCommitTimerId = null;
+			}, 280);
+		}
+
+		function updateDragVisuals(deltaX) {
+			var threshold = getSwipeThreshold();
+			var progress = threshold ? Math.min(1.2, Math.abs(deltaX) / threshold) : 0;
+			var offset = Math.max(-44, Math.min(44, deltaX * 0.32));
+			var tilt = Math.max(-1.8, Math.min(1.8, deltaX * 0.012));
+
+			root.style.setProperty('--ntc-drag-offset', offset + 'px');
+			root.style.setProperty('--ntc-drag-tilt', tilt + 'deg');
+			root.style.setProperty('--ntc-drag-progress', progress.toFixed(3));
+		}
+
+		function resetDragVisuals() {
+			root.style.setProperty('--ntc-drag-offset', '0px');
+			root.style.setProperty('--ntc-drag-tilt', '0deg');
+			root.style.setProperty('--ntc-drag-progress', '0');
+		}
+
+		function commitSwipe(direction) {
+			triggerSwipeCommit(direction);
+
+			if (direction === 'next') {
+				handleNext(getScrollBehavior());
+				return;
+			}
+
+			handlePrev(getScrollBehavior());
+		}
+
+		function shouldCommitSwipe() {
+			var absDeltaX = Math.abs(dragState.currentDeltaX);
+			var absVelocityX = Math.abs(dragState.velocityX);
+			var threshold = getSwipeThreshold();
+
+			return absDeltaX >= threshold || absVelocityX >= 0.42;
+		}
+
 		function isBlockedPointerTarget(target) {
-			return !!target.closest('button, audio, video');
+			return !!target.closest('a, button, audio, video');
 		}
 
 		function onPointerDown(event) {
@@ -212,11 +257,16 @@
 			dragState.pointerId = event.pointerId;
 			dragState.pointerType = event.pointerType || '';
 			dragState.startX = event.clientX;
+			dragState.startTime = Date.now();
 			dragState.startScrollLeft = viewport.scrollLeft;
 			dragState.currentDeltaX = 0;
+			dragState.lastClientX = event.clientX;
+			dragState.lastTimestamp = dragState.startTime;
+			dragState.velocityX = 0;
 			dragState.moved = false;
 
 			stopAutoplay();
+			clearSwipeCommitClasses();
 			viewport.classList.add('is-dragging');
 
 			if (dragState.pointerType === 'touch') {
@@ -230,6 +280,9 @@
 
 		function onPointerMove(event) {
 			var deltaX;
+			var now;
+			var elapsed;
+			var stepDistance;
 
 			if (!dragState.active) {
 				return;
@@ -237,6 +290,12 @@
 
 			deltaX = event.clientX - dragState.startX;
 			dragState.currentDeltaX = deltaX;
+			now = Date.now();
+			elapsed = Math.max(1, now - dragState.lastTimestamp);
+			stepDistance = event.clientX - dragState.lastClientX;
+			dragState.velocityX = stepDistance / elapsed;
+			dragState.lastClientX = event.clientX;
+			dragState.lastTimestamp = now;
 
 			if (Math.abs(deltaX) > 6) {
 				dragState.moved = true;
@@ -245,23 +304,29 @@
 			}
 
 			if (dragState.pointerType === 'touch') {
-				root.style.setProperty('--ntc-drag-offset', Math.max(-26, Math.min(26, deltaX * 0.18)) + 'px');
-				root.style.setProperty('--ntc-drag-tilt', Math.max(-1.2, Math.min(1.2, deltaX * 0.008)) + 'deg');
+				updateDragVisuals(deltaX);
 			}
 
 			viewport.scrollLeft = dragState.startScrollLeft - deltaX;
 		}
 
 		function onPointerEnd(event) {
+			var pointerType;
+			var shouldCommit;
+			var swipeDirection;
+
 			if (!dragState.active) {
 				return;
 			}
 
+			pointerType = dragState.pointerType;
+			shouldCommit = dragState.moved && pointerType === 'touch' && shouldCommitSwipe();
+			swipeDirection = dragState.currentDeltaX < 0 ? 'next' : 'prev';
+
 			dragState.active = false;
 			viewport.classList.remove('is-dragging');
 			root.classList.remove('is-touch-dragging');
-			root.style.setProperty('--ntc-drag-offset', '0px');
-			root.style.setProperty('--ntc-drag-tilt', '0deg');
+			resetDragVisuals();
 
 			if (viewport.releasePointerCapture && null !== dragState.pointerId) {
 				try {
@@ -272,11 +337,17 @@
 
 			dragState.pointerId = null;
 			dragState.pointerType = '';
-			dragState.currentDeltaX = 0;
 
 			if (dragState.moved) {
-				snapToNearest();
+				if (shouldCommit) {
+					commitSwipe(swipeDirection);
+				} else {
+					snapToNearest();
+				}
 			}
+
+			dragState.currentDeltaX = 0;
+			dragState.velocityX = 0;
 
 			window.setTimeout(function () {
 				dragState.suppressClick = false;
@@ -311,6 +382,70 @@
 			}
 		});
 
+		if (!supportsPointerEvents) {
+			viewport.addEventListener(
+				'touchstart',
+				function (event) {
+					var touch;
+
+					if (!event.changedTouches.length) {
+						return;
+					}
+
+					touch = event.changedTouches[0];
+
+					onPointerDown({
+						target: event.target,
+						clientX: touch.clientX,
+						pointerId: 1,
+						pointerType: 'touch'
+					});
+				},
+				{ passive: true }
+			);
+
+			viewport.addEventListener(
+				'touchmove',
+				function (event) {
+					var touch;
+
+					if (!dragState.active || !event.changedTouches.length) {
+						return;
+					}
+
+					touch = event.changedTouches[0];
+
+					onPointerMove({
+						clientX: touch.clientX,
+						preventDefault: function () {
+							event.preventDefault();
+						}
+					});
+				},
+				{ passive: false }
+			);
+
+			viewport.addEventListener(
+				'touchend',
+				function () {
+					if (dragState.active) {
+						onPointerEnd({ pointerId: dragState.pointerId });
+					}
+				},
+				{ passive: true }
+			);
+
+			viewport.addEventListener(
+				'touchcancel',
+				function () {
+					if (dragState.active) {
+						onPointerEnd({ pointerId: dragState.pointerId });
+					}
+				},
+				{ passive: true }
+			);
+		}
+
 		viewport.addEventListener(
 			'click',
 			function (event) {
@@ -339,14 +474,6 @@
 			}
 		});
 
-		viewport.addEventListener('scroll', function () {
-			if (scrollTimerId) {
-				window.clearTimeout(scrollTimerId);
-			}
-
-			scrollTimerId = window.setTimeout(updateStatus, 120);
-		});
-
 		document.addEventListener('visibilitychange', function () {
 			if (document.hidden) {
 				stopAutoplay();
@@ -359,10 +486,8 @@
 		window.addEventListener('resize', function () {
 			updateNavigationState();
 			snapToNearest();
-			updateStatus();
 		});
 
-		updateStatus();
 		updateNavigationState();
 		startAutoplay();
 	}
