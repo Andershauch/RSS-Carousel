@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1 - 2026-04-02
+
+- Removed the mobile navigation arrows so small-screen users rely on swipe and autoplay only.
+- Restored full-width mobile cards after removing the mobile arrows.
+- Tweaked mobile card spacing so the source and date line sits cleanly below the image.
+
 ## 1.1.0 - 2026-04-02
 
 - Added customizable frontend text settings for the carousel eyebrow, heading, and read-more label.

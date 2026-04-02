@@ -518,6 +518,10 @@
 }
 
 @media (max-width: 719px) {
+	.ntc-carousel__body {
+		padding: 0 !important;
+	}
+
 	.ntc-carousel.is-touch-dragging .ntc-card {
 		box-shadow: 0 22px 34px rgba(10, 28, 84, 0.12);
 		opacity: calc(1 - (var(--ntc-drag-progress) * 0.12));
@@ -570,7 +574,7 @@
 	}
 
 	.ntc-carousel__nav {
-		box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
+		display: none !important;
 	}
 
 	.ntc-carousel__nav:active {

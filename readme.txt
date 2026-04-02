@@ -4,7 +4,7 @@ Tags: rss, feed, carousel, news, shortcode
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -47,6 +47,12 @@ No. Feed results are cached using the WordPress Transients API based on the plug
 Yes. The settings page includes a **Refresh Cache** button.
 
 == Changelog ==
+
+= 1.1.1 =
+
+* Removed mobile navigation arrows and let the carousel use swipe and autoplay only on small screens.
+* Restored full-width mobile cards after removing the mobile arrows.
+* Tweaked mobile card spacing so the source and date line sits cleanly below the image.
 
 = 1.1.0 =
 
@@ -96,6 +102,10 @@ Yes. The settings page includes a **Refresh Cache** button.
 * Updated documentation and packaging metadata.
 
 == Upgrade Notice ==
+
+= 1.1.1 =
+
+Recommended update with the latest mobile carousel polish and full-width card layout improvements.
 
 = 1.1.0 =
 
