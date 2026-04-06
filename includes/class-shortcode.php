@@ -78,18 +78,18 @@ class NTC_Shortcode {
 		wp_register_script(
 			'ntc-carousel',
 			NTC_PLUGIN_URL . 'assets/js/carousel.js',
-			array( 'wp-i18n' ),
+			array(),
 			$script_version,
 			true
 		);
 
-		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations(
-				'ntc-carousel',
-				'rss-news-carousel',
-				NTC_PLUGIN_PATH . 'languages'
-			);
-		}
+		wp_localize_script(
+			'ntc-carousel',
+			'ntcCarouselL10n',
+			array(
+				'swipeHintLabel' => __( 'Swipe', 'rss-news-carousel' ),
+			)
+		);
 	}
 
 	/**

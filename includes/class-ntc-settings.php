@@ -56,6 +56,7 @@ class NTC_Settings {
 	 */
 	public function register_hooks() {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'maybe_upgrade_text_defaults' ) );
 		add_action( 'update_option_' . self::OPTION_NAME, array( $this, 'handle_settings_updated' ), 10, 2 );
 		add_filter( 'option_page_capability_' . self::OPTION_GROUP, array( $this, 'get_required_capability' ) );
 	}
@@ -73,6 +74,55 @@ class NTC_Settings {
 		$cache = new NTC_Cache();
 
 		$cache->delete_all();
+	}
+
+	/**
+	 * Upgrades legacy default frontend texts from older plugin versions.
+	 *
+	 * This keeps existing installs in sync when the old Tottenham-specific copy
+	 * or mojibake fallback text was previously saved to the database.
+	 *
+	 * @return void
+	 */
+	public function maybe_upgrade_text_defaults() {
+		$settings = get_option( self::OPTION_NAME, null );
+
+		if ( ! is_array( $settings ) ) {
+			return;
+		}
+
+		$updated = false;
+
+		if ( isset( $settings['header_eyebrow_text'] ) && 'TOTTENHAM LIVE FEED' === $settings['header_eyebrow_text'] ) {
+			$settings['header_eyebrow_text'] = 'LIVE NYHEDSFEED';
+			$updated                         = true;
+		}
+
+		if ( isset( $settings['header_title_text'] ) && 'SENESTE NYHEDER OM DIT YNDLINGSHOLD' === $settings['header_title_text'] ) {
+			$settings['header_title_text'] = 'SENESTE NYHEDER';
+			$updated                       = true;
+		}
+
+		if ( isset( $settings['read_more_text'] ) && false !== strpos( (string) $settings['read_more_text'], 'Ãƒ' ) ) {
+			$settings['read_more_text'] = 'LÃ†S MERE';
+			$updated                    = true;
+		}
+
+		if ( isset( $settings['read_more_text'] ) && preg_match( '/\x{00C3}/u', (string) $settings['read_more_text'] ) ) {
+			$settings['read_more_text'] = html_entity_decode( 'L&AElig;S MERE', ENT_QUOTES, 'UTF-8' );
+			$updated                    = true;
+		}
+
+		if ( isset( $settings['read_more_text'] ) && $this->contains_mojibake_text( $settings['read_more_text'] ) ) {
+			$settings['read_more_text'] = $this->get_default_read_more_text();
+			$updated                    = true;
+		}
+
+		if ( ! $updated ) {
+			return;
+		}
+
+		update_option( self::OPTION_NAME, $settings, false );
 	}
 
 	/**
@@ -118,10 +168,9 @@ class NTC_Settings {
 		$this->register_field(
 			'rss_feeds',
 			__( 'RSS feed URLs', 'rss-news-carousel' ),
-			array( $this, 'render_textarea_field' ),
+			array( $this, 'render_feed_sources_field' ),
 			array(
-				'description' => __( 'Enter one feed URL per line.', 'rss-news-carousel' ),
-				'rows'        => 8,
+				'description' => __( 'Add feed URLs, then drag them or use Up/Down to set source priority. Higher entries are shown before lower entries.', 'rss-news-carousel' ),
 			)
 		);
 
@@ -379,9 +428,9 @@ class NTC_Settings {
 			'autoplay'                => 0,
 			'theme'                   => 'light',
 			'layout'                  => 'cards',
-			'header_eyebrow_text'     => 'TOTTENHAM LIVE FEED',
-			'header_title_text'       => 'SENESTE NYHEDER OM DIT YNDLINGSHOLD',
-			'read_more_text'          => 'LÆS MERE',
+			'header_eyebrow_text'     => 'LIVE NYHEDSFEED',
+			'header_title_text'       => 'SENESTE NYHEDER',
+			'read_more_text'          => $this->get_default_read_more_text(),
 			'heading_font'            => 'apex',
 			'body_font'               => 'apex',
 			'heading_color'           => '#0a1c54',
@@ -731,6 +780,72 @@ class NTC_Settings {
 	}
 
 	/**
+	 * Renders the sortable feed-source field.
+	 *
+	 * @param array $args Field arguments.
+	 * @return void
+	 */
+	public function render_feed_sources_field( array $args ) {
+		$key         = $args['key'];
+		$settings    = $this->get_settings();
+		$value       = isset( $settings[ $key ] ) ? (string) $settings[ $key ] : '';
+		$description = isset( $args['description'] ) ? $args['description'] : '';
+		$field_name  = self::OPTION_NAME . '[' . $key . ']';
+		$feed_urls   = $this->split_feed_lines( $value );
+		?>
+		<div class="ntc-feed-sources" data-ntc-feed-sources="true">
+			<textarea
+				class="ntc-feed-sources__storage"
+				data-role="feed-source-storage"
+				name="<?php echo esc_attr( $field_name ); ?>"
+				id="<?php echo esc_attr( $key ); ?>"
+				rows="1"
+				hidden
+			><?php echo esc_textarea( $value ); ?></textarea>
+
+			<ul class="ntc-feed-sources__list" data-role="feed-source-list">
+				<?php foreach ( $feed_urls as $feed_url ) : ?>
+					<li class="ntc-feed-sources__item">
+						<button type="button" class="ntc-feed-sources__handle button-link" aria-label="<?php echo esc_attr__( 'Drag to reorder', 'rss-news-carousel' ); ?>">::</button>
+						<input class="regular-text ntc-feed-sources__input" type="url" value="<?php echo esc_attr( $feed_url ); ?>" placeholder="<?php echo esc_attr__( 'https://example.com/feed/', 'rss-news-carousel' ); ?>" />
+						<div class="ntc-feed-sources__actions">
+							<button type="button" class="button-secondary ntc-feed-sources__move" data-action="move-feed-source-up"><?php echo esc_html__( 'Up', 'rss-news-carousel' ); ?></button>
+							<button type="button" class="button-secondary ntc-feed-sources__move" data-action="move-feed-source-down"><?php echo esc_html__( 'Down', 'rss-news-carousel' ); ?></button>
+							<button type="button" class="button-link-delete ntc-feed-sources__remove" data-action="remove-feed-source"><?php echo esc_html__( 'Remove', 'rss-news-carousel' ); ?></button>
+						</div>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+
+			<button type="button" class="button-secondary ntc-feed-sources__add" data-action="add-feed-source"><?php echo esc_html__( 'Add source', 'rss-news-carousel' ); ?></button>
+
+			<template>
+				<li class="ntc-feed-sources__item">
+					<button type="button" class="ntc-feed-sources__handle button-link" aria-label="<?php echo esc_attr__( 'Drag to reorder', 'rss-news-carousel' ); ?>">::</button>
+					<input class="regular-text ntc-feed-sources__input" type="url" value="" placeholder="<?php echo esc_attr__( 'https://example.com/feed/', 'rss-news-carousel' ); ?>" />
+					<div class="ntc-feed-sources__actions">
+						<button type="button" class="button-secondary ntc-feed-sources__move" data-action="move-feed-source-up"><?php echo esc_html__( 'Up', 'rss-news-carousel' ); ?></button>
+						<button type="button" class="button-secondary ntc-feed-sources__move" data-action="move-feed-source-down"><?php echo esc_html__( 'Down', 'rss-news-carousel' ); ?></button>
+						<button type="button" class="button-link-delete ntc-feed-sources__remove" data-action="remove-feed-source"><?php echo esc_html__( 'Remove', 'rss-news-carousel' ); ?></button>
+					</div>
+				</li>
+			</template>
+
+			<noscript>
+				<textarea
+					class="large-text code"
+					name="<?php echo esc_attr( $field_name ); ?>"
+					rows="8"
+				><?php echo esc_textarea( $value ); ?></textarea>
+			</noscript>
+		</div>
+		<?php if ( ! empty( $description ) ) : ?>
+			<p class="description"><?php echo esc_html( $description ); ?></p>
+		<?php endif; ?>
+		<?php
+	}
+
+	/**
 	 * Renders a text input field.
 	 *
 	 * @param array $args Field arguments.
@@ -905,6 +1020,85 @@ class NTC_Settings {
 			$settings = array();
 		}
 
-		return wp_parse_args( $settings, $this->get_defaults() );
+		return $this->normalize_text_settings(
+			wp_parse_args( $settings, $this->get_defaults() )
+		);
+	}
+
+	/**
+	 * Normalizes legacy or mojibake frontend text settings.
+	 *
+	 * @param array $settings Settings payload.
+	 * @return array
+	 */
+	private function normalize_text_settings( array $settings ) {
+		if ( isset( $settings['header_eyebrow_text'] ) && 'TOTTENHAM LIVE FEED' === $settings['header_eyebrow_text'] ) {
+			$settings['header_eyebrow_text'] = 'LIVE NYHEDSFEED';
+		}
+
+		if ( isset( $settings['header_title_text'] ) && 'SENESTE NYHEDER OM DIT YNDLINGSHOLD' === $settings['header_title_text'] ) {
+			$settings['header_title_text'] = 'SENESTE NYHEDER';
+		}
+
+		if (
+			! isset( $settings['read_more_text'] ) ||
+			'' === $settings['read_more_text'] ||
+			preg_match( '/\x{00C3}/u', (string) $settings['read_more_text'] )
+		) {
+			$settings['read_more_text'] = html_entity_decode( 'L&AElig;S MERE', ENT_QUOTES, 'UTF-8' );
+		}
+
+		if ( isset( $settings['read_more_text'] ) && $this->contains_mojibake_text( $settings['read_more_text'] ) ) {
+			$settings['read_more_text'] = $this->get_default_read_more_text();
+		}
+
+		return $settings;
+	}
+
+	/**
+	 * Splits a newline-separated feed list into trimmed entries.
+	 *
+	 * @param string $value Raw feed list.
+	 * @return array
+	 */
+	private function split_feed_lines( $value ) {
+		$value = is_string( $value ) ? $value : '';
+		$lines = preg_split( '/\r\n|\r|\n/', $value );
+
+		if ( empty( $lines ) ) {
+			return array();
+		}
+
+		$lines = array_map( 'trim', $lines );
+		$lines = array_filter(
+			$lines,
+			static function ( $line ) {
+				return '' !== $line;
+			}
+		);
+
+		return array_values( $lines );
+	}
+
+	/**
+	 * Returns the default read-more label with proper Danish encoding.
+	 *
+	 * @return string
+	 */
+	private function get_default_read_more_text() {
+		return html_entity_decode( 'L&AElig;S MERE', ENT_QUOTES, 'UTF-8' );
+	}
+
+	/**
+	 * Returns whether a text value appears to contain mojibake.
+	 *
+	 * @param string $value Text value.
+	 * @return bool
+	 */
+	private function contains_mojibake_text( $value ) {
+		$value = (string) $value;
+
+		return '' !== $value && false !== strpos( $value, 'Ã' );
 	}
 }
+

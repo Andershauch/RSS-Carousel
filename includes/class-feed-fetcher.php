@@ -22,6 +22,15 @@ class NTC_Feed_Fetcher {
 	const MAX_ITEMS_PER_FEED = 15;
 
 	/**
+	 * Recent-news window in seconds.
+	 *
+	 * Items published within this rolling window are always shown first.
+	 *
+	 * @var int
+	 */
+	const RECENT_ITEMS_WINDOW = 2 * DAY_IN_SECONDS;
+
+	/**
 	 * Settings handler.
 	 *
 	 * @var NTC_Settings
@@ -87,7 +96,7 @@ class NTC_Feed_Fetcher {
 
 		if ( empty( $feed_urls ) ) {
 			$result['message'] = __( 'Add one or more RSS feed URLs in the plugin settings.', 'rss-news-carousel' );
-			$this->cache->set( $settings, $result, $settings['cache_minutes'] );
+			$this->cache_result( $settings, $result );
 
 			return $result;
 		}
@@ -97,7 +106,7 @@ class NTC_Feed_Fetcher {
 		$items  = array();
 		$errors = array();
 
-		foreach ( $feed_urls as $feed_url ) {
+		foreach ( $feed_urls as $source_priority => $feed_url ) {
 			$feed = fetch_feed( $feed_url );
 
 			if ( is_wp_error( $feed ) ) {
@@ -116,7 +125,14 @@ class NTC_Feed_Fetcher {
 				continue;
 			}
 
-			$items = array_merge( $items, $this->item_normalizer->normalize_items( $feed_items, $feed ) );
+			$items = array_merge(
+				$items,
+				$this->apply_source_priority(
+					$this->item_normalizer->normalize_items( $feed_items, $feed ),
+					$feed_url,
+					(int) $source_priority
+				)
+			);
 		}
 
 		$items = $this->keyword_filter->prioritize_items( $items, $settings['keywords'] );
@@ -134,7 +150,7 @@ class NTC_Feed_Fetcher {
 			$result['message'] = $this->get_empty_message( $settings, $result['errors'] );
 		}
 
-		$this->cache->set( $settings, $result, $settings['cache_minutes'] );
+		$this->cache_result( $settings, $result );
 
 		return $result;
 	}
@@ -157,6 +173,39 @@ class NTC_Feed_Fetcher {
 		$this->clear_cache();
 
 		return $this->get_feed_data();
+	}
+
+	/**
+	 * Stores a feed result with a production-safe cache lifetime.
+	 *
+	 * Failed refreshes are cached briefly so transient upstream outages do not
+	 * blank the carousel for the full normal TTL.
+	 *
+	 * @param array $settings Plugin settings.
+	 * @param array $result   Feed result payload.
+	 * @return bool
+	 */
+	private function cache_result( array $settings, array $result ) {
+		$cache_minutes = isset( $settings['cache_minutes'] ) ? absint( $settings['cache_minutes'] ) : 30;
+
+		if ( $this->is_failed_result( $result ) ) {
+			$cache_minutes = min( $cache_minutes, 5 );
+		}
+
+		return $this->cache->set( $settings, $result, $cache_minutes );
+	}
+
+	/**
+	 * Returns whether a feed result represents a failed refresh.
+	 *
+	 * @param array $result Feed result payload.
+	 * @return bool
+	 */
+	private function is_failed_result( array $result ) {
+		$items  = isset( $result['items'] ) && is_array( $result['items'] ) ? $result['items'] : array();
+		$errors = isset( $result['errors'] ) && is_array( $result['errors'] ) ? $result['errors'] : array();
+
+		return ! empty( $errors ) && empty( $items );
 	}
 
 	/**
@@ -217,6 +266,28 @@ class NTC_Feed_Fetcher {
 	}
 
 	/**
+	 * Applies source metadata used for downstream prioritization.
+	 *
+	 * @param array  $items           Normalized feed items.
+	 * @param string $feed_url        Feed URL.
+	 * @param int    $source_priority Source priority index.
+	 * @return array
+	 */
+	private function apply_source_priority( array $items, $feed_url, $source_priority ) {
+		foreach ( $items as $index => $item ) {
+			if ( ! is_array( $item ) ) {
+				unset( $items[ $index ] );
+				continue;
+			}
+
+			$items[ $index ]['ntc_source_feed_url'] = (string) $feed_url;
+			$items[ $index ]['ntc_source_priority'] = (int) $source_priority;
+		}
+
+		return array_values( $items );
+	}
+
+	/**
 	 * Removes duplicate items by URL or GUID.
 	 *
 	 * @param array $items Normalized items.
@@ -258,7 +329,7 @@ class NTC_Feed_Fetcher {
 	}
 
 	/**
-	 * Sorts items by keyword relevance first, then by publication date descending.
+	 * Sorts items so fresh stories come first, then older stories by keywords and date.
 	 *
 	 * @param array $items Normalized items.
 	 * @return array
@@ -273,13 +344,36 @@ class NTC_Feed_Fetcher {
 	}
 
 	/**
-	 * Compares two normalized items by keyword relevance and publication date.
+	 * Compares two normalized items for carousel ordering.
 	 *
 	 * @param array $left  Left item.
 	 * @param array $right Right item.
 	 * @return int
 	 */
 	private function compare_items( array $left, array $right ) {
+		$left_is_recent  = $this->is_recent_item( $left );
+		$right_is_recent = $this->is_recent_item( $right );
+		$left_timestamp  = $this->get_item_timestamp( $left );
+		$right_timestamp = $this->get_item_timestamp( $right );
+
+		if ( $left_is_recent !== $right_is_recent ) {
+			return $left_is_recent ? -1 : 1;
+		}
+
+		if ( $left_is_recent && $right_is_recent ) {
+			if ( $left_timestamp === $right_timestamp ) {
+				return $this->compare_source_priority( $left, $right );
+			}
+
+			return ( $left_timestamp > $right_timestamp ) ? -1 : 1;
+		}
+
+		$source_priority_comparison = $this->compare_source_priority( $left, $right );
+
+		if ( 0 !== $source_priority_comparison ) {
+			return $source_priority_comparison;
+		}
+
 		$left_score  = isset( $left['ntc_keyword_score'] ) ? (int) $left['ntc_keyword_score'] : 0;
 		$right_score = isset( $right['ntc_keyword_score'] ) ? (int) $right['ntc_keyword_score'] : 0;
 
@@ -294,14 +388,31 @@ class NTC_Feed_Fetcher {
 			return ( $left_hits > $right_hits ) ? -1 : 1;
 		}
 
-		$left_timestamp  = $this->get_item_timestamp( $left );
-		$right_timestamp = $this->get_item_timestamp( $right );
-
 		if ( $left_timestamp === $right_timestamp ) {
 			return 0;
 		}
 
 		return ( $left_timestamp > $right_timestamp ) ? -1 : 1;
+	}
+
+	/**
+	 * Compares two items by source priority.
+	 *
+	 * Lower source indexes are shown first.
+	 *
+	 * @param array $left  Left item.
+	 * @param array $right Right item.
+	 * @return int
+	 */
+	private function compare_source_priority( array $left, array $right ) {
+		$left_priority  = isset( $left['ntc_source_priority'] ) ? (int) $left['ntc_source_priority'] : PHP_INT_MAX;
+		$right_priority = isset( $right['ntc_source_priority'] ) ? (int) $right['ntc_source_priority'] : PHP_INT_MAX;
+
+		if ( $left_priority === $right_priority ) {
+			return 0;
+		}
+
+		return ( $left_priority < $right_priority ) ? -1 : 1;
 	}
 
 	/**
@@ -318,6 +429,35 @@ class NTC_Feed_Fetcher {
 		$timestamp = strtotime( $item['published_at'] );
 
 		return false === $timestamp ? 0 : (int) $timestamp;
+	}
+
+	/**
+	 * Returns whether an item was published within the recent-news window.
+	 *
+	 * @param array $item Normalized item.
+	 * @return bool
+	 */
+	private function is_recent_item( array $item ) {
+		$timestamp = $this->get_item_timestamp( $item );
+
+		if ( $timestamp <= 0 ) {
+			return false;
+		}
+
+		return $timestamp >= $this->get_recent_threshold();
+	}
+
+	/**
+	 * Returns the Unix timestamp threshold for recent stories.
+	 *
+	 * @return int
+	 */
+	private function get_recent_threshold() {
+		$current_timestamp = function_exists( 'current_time' )
+			? (int) current_time( 'timestamp', true )
+			: time();
+
+		return $current_timestamp - self::RECENT_ITEMS_WINDOW;
 	}
 
 	/**

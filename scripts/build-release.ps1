@@ -1,12 +1,19 @@
 param(
 	[string]$PluginSlug = 'rss-news-carousel',
-	[string]$MainPluginFile = 'news-topic-carousel.php'
+	[string]$MainPluginFile = 'news-topic-carousel.php',
+	[string]$OutputDirectory = ''
 )
 
 $ErrorActionPreference = 'Stop'
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $mainPluginPath = Join-Path $projectRoot $MainPluginFile
+$configPath = Join-Path $projectRoot 'project.local.json'
+$config     = $null
+
+if ( Test-Path -LiteralPath $configPath ) {
+	$config = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
+}
 
 if ( -not ( Test-Path -LiteralPath $mainPluginPath ) ) {
 	throw "Main plugin file not found: $mainPluginPath"
@@ -19,7 +26,8 @@ if ( $pluginFileContents -notmatch 'Version:\s*([0-9]+\.[0-9]+\.[0-9]+)' ) {
 }
 
 $pluginVersion = $Matches[1]
-$distPath      = Join-Path $projectRoot 'dist'
+$defaultOutputDirectory = if ( $null -ne $config -and $null -ne $config.releaseOutputPath ) { [string] $config.releaseOutputPath } else { '' }
+$distPath               = if ( '' -ne $OutputDirectory ) { $OutputDirectory } elseif ( '' -ne $defaultOutputDirectory ) { $defaultOutputDirectory } else { Join-Path $projectRoot 'dist' }
 $zipPath       = Join-Path $distPath ( $PluginSlug + '-' + $pluginVersion + '.zip' )
 $buildItems    = @(
 	'assets',

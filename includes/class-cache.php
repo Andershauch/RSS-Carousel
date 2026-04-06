@@ -22,6 +22,13 @@ class NTC_Cache {
 	const TRANSIENT_PREFIX = 'ntc_feed_data_';
 
 	/**
+	 * Cache namespace option used to invalidate persistent object caches.
+	 *
+	 * @var string
+	 */
+	const CACHE_NAMESPACE_OPTION = 'ntc_cache_namespace';
+
+	/**
 	 * Retrieves cached feed data for a settings payload.
 	 *
 	 * @param array $settings Plugin settings.
@@ -65,6 +72,8 @@ class NTC_Cache {
 	public function delete_all() {
 		global $wpdb;
 
+		$this->bump_namespace();
+
 		$option_names = array(
 			'_transient_' . self::TRANSIENT_PREFIX . '%',
 			'_transient_timeout_' . self::TRANSIENT_PREFIX . '%',
@@ -88,8 +97,9 @@ class NTC_Cache {
 	 */
 	private function get_key( array $settings ) {
 		$normalized_settings = $this->sort_settings( $settings );
+		$namespace           = $this->get_namespace();
 
-		return self::TRANSIENT_PREFIX . md5( NTC_VERSION . '|' . wp_json_encode( $normalized_settings ) );
+		return self::TRANSIENT_PREFIX . md5( NTC_VERSION . '|' . $namespace . '|' . wp_json_encode( $normalized_settings ) );
 	}
 
 	/**
@@ -108,5 +118,25 @@ class NTC_Cache {
 		ksort( $settings );
 
 		return $settings;
+	}
+
+	/**
+	 * Returns the active cache namespace.
+	 *
+	 * @return int
+	 */
+	private function get_namespace() {
+		$namespace = absint( get_option( self::CACHE_NAMESPACE_OPTION, 1 ) );
+
+		return max( 1, $namespace );
+	}
+
+	/**
+	 * Bumps the cache namespace so old object-cache entries are ignored.
+	 *
+	 * @return void
+	 */
+	private function bump_namespace() {
+		update_option( self::CACHE_NAMESPACE_OPTION, $this->get_namespace() + 1, false );
 	}
 }

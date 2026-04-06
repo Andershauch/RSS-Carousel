@@ -29,6 +29,13 @@ class NTC_Admin {
 	const ADMIN_STYLE_HANDLE = 'ntc-admin';
 
 	/**
+	 * Admin script handle.
+	 *
+	 * @var string
+	 */
+	const ADMIN_SCRIPT_HANDLE = 'ntc-admin';
+
+	/**
 	 * Settings page slug.
 	 *
 	 * @var string
@@ -92,13 +99,35 @@ class NTC_Admin {
 		}
 
 		$style_path    = NTC_PLUGIN_PATH . 'assets/css/admin.css';
+		$script_path   = NTC_PLUGIN_PATH . 'assets/js/admin.js';
 		$style_version = file_exists( $style_path ) ? (string) filemtime( $style_path ) : NTC_VERSION;
+		$script_version = file_exists( $script_path ) ? (string) filemtime( $script_path ) : NTC_VERSION;
 
 		wp_enqueue_style(
 			self::ADMIN_STYLE_HANDLE,
 			NTC_PLUGIN_URL . 'assets/css/admin.css',
 			array(),
 			$style_version
+		);
+
+		wp_enqueue_script(
+			self::ADMIN_SCRIPT_HANDLE,
+			NTC_PLUGIN_URL . 'assets/js/admin.js',
+			array(),
+			$script_version,
+			true
+		);
+
+		wp_localize_script(
+			self::ADMIN_SCRIPT_HANDLE,
+			'ntcAdminL10n',
+			array(
+				'addSource'    => __( 'Add source', 'rss-news-carousel' ),
+				'removeSource' => __( 'Remove', 'rss-news-carousel' ),
+				'dragSource'   => __( 'Drag to reorder', 'rss-news-carousel' ),
+				'moveUp'       => __( 'Up', 'rss-news-carousel' ),
+				'moveDown'     => __( 'Down', 'rss-news-carousel' ),
+			)
 		);
 	}
 
@@ -144,8 +173,8 @@ class NTC_Admin {
 				<div class="ntc-admin__card ntc-admin__card--manual">
 					<h2><?php echo esc_html__( 'How to use this plugin', 'rss-news-carousel' ); ?></h2>
 					<ol class="ntc-admin__manual-list">
-						<li><?php echo esc_html__( 'Add one or more RSS or Atom feed URLs, one per line.', 'rss-news-carousel' ); ?></li>
-						<li><?php echo esc_html__( 'Add keywords separated by commas if you want matching stories to be prioritised first.', 'rss-news-carousel' ); ?></li>
+						<li><?php echo esc_html__( 'Add one or more RSS or Atom feed URLs and drag them, or use Up/Down, to set your preferred source priority.', 'rss-news-carousel' ); ?></li>
+						<li><?php echo esc_html__( 'Add keywords separated by commas if you want older stories within each source to be prioritised by match strength.', 'rss-news-carousel' ); ?></li>
 						<li><?php echo esc_html__( 'Choose how many items to show, how long they should be cached, and which parts of each card should be visible.', 'rss-news-carousel' ); ?></li>
 						<li><?php echo esc_html__( 'Adjust theme, layout, fonts, and colors to match your site.', 'rss-news-carousel' ); ?></li>
 						<li><?php echo esc_html__( 'Save the settings and place the shortcode on a page or in Elementor.', 'rss-news-carousel' ); ?></li>

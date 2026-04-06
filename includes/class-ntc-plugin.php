@@ -160,8 +160,6 @@ class NTC_Plugin {
 	 * @return void
 	 */
 	public function schedule_refresh_event() {
-		$this->register_cron_hooks();
-
 		if ( wp_next_scheduled( self::REFRESH_CRON_HOOK ) ) {
 			return;
 		}

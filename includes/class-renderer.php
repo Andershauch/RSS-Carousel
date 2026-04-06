@@ -55,8 +55,8 @@ class NTC_Renderer {
 		$autoplay        = ! empty( $settings['autoplay'] );
 		$block_id        = $this->generate_block_id();
 		$inline_style    = $this->get_inline_style( $settings );
-		$eyebrow_text    = $this->get_display_text( $settings, 'header_eyebrow_text', 'TOTTENHAM LIVE FEED' );
-		$heading_text    = $this->get_display_text( $settings, 'header_title_text', 'SENESTE NYHEDER OM DIT YNDLINGSHOLD' );
+		$eyebrow_text    = $this->get_display_text( $settings, 'header_eyebrow_text', 'LIVE NYHEDSFEED' );
+		$heading_text    = $this->get_display_text( $settings, 'header_title_text', 'SENESTE NYHEDER' );
 		$section_classes = array(
 			'ntc-carousel',
 			'ntc-carousel--theme-' . $theme,
@@ -150,9 +150,22 @@ class NTC_Renderer {
 		$show_excerpt     = ! empty( $settings['show_excerpt'] ) && '' !== $excerpt;
 		$display_title    = '' !== $title ? $title : __( 'Untitled news item', 'rss-news-carousel' );
 		$display_excerpt  = $show_excerpt ? wp_trim_words( $excerpt, 18, '&hellip;' ) : '';
-		$read_more_text   = $this->get_display_text( $settings, 'read_more_text', 'LÆS MERE' );
+		$read_more_fallback = 'LÃ†S MERE';
+		$read_more_text   = $this->get_display_text( $settings, 'read_more_text', 'LÃ†S MERE' );
 		$date_markup      = $show_date ? $this->get_date_markup( $published_at ) : '';
+
+		if ( '' === $read_more_text || false !== strpos( $read_more_text, 'Ãƒ' ) ) {
+			$read_more_text = $read_more_fallback;
+		}
+
 		$media_markup     = $show_media ? $this->get_media_markup( $media_type, $media_url, $image, $display_title ) : '';
+
+		if ( '' === $read_more_text || preg_match( '/\x{00C3}/u', $read_more_text ) ) {
+			$read_more_text = html_entity_decode( 'L&AElig;S MERE', ENT_QUOTES, 'UTF-8' );
+		}
+
+		$read_more_text = $this->normalize_read_more_text( $read_more_text );
+
 		$keyword_markup   = $this->get_matched_keywords_markup( $matched_keywords );
 		$card_classes     = array( 'ntc-card' );
 
@@ -356,6 +369,22 @@ class NTC_Renderer {
 	}
 
 	/**
+	 * Normalizes the read-more label to keep Danish characters intact.
+	 *
+	 * @param string $text Read-more label.
+	 * @return string
+	 */
+	private function normalize_read_more_text( $text ) {
+		$text = sanitize_text_field( (string) $text );
+
+		if ( '' === $text || false !== strpos( $text, 'Ã' ) ) {
+			return html_entity_decode( 'L&AElig;S MERE', ENT_QUOTES, 'UTF-8' );
+		}
+
+		return $text;
+	}
+
+	/**
 	 * Wraps a fallback message in frontend container classes.
 	 *
 	 * @param string $message      Message text.
@@ -482,3 +511,4 @@ class NTC_Renderer {
 		return uniqid( 'ntc-carousel-', false );
 	}
 }
+

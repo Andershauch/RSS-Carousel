@@ -2,6 +2,7 @@
 	'use strict';
 
 	var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	var l10n = window.ntcCarouselL10n || {};
 
 	function createCarousel(root) {
 		var viewport = root.querySelector('[data-role="viewport"]');
@@ -221,7 +222,7 @@
 			hint.setAttribute('aria-hidden', 'true');
 			hint.innerHTML =
 				'<span class="ntc-carousel__swipe-hint-arrow ntc-carousel__swipe-hint-arrow--left">&#10094;</span>' +
-				'<span class="ntc-carousel__swipe-hint-label">Swipe</span>' +
+				'<span class="ntc-carousel__swipe-hint-label">' + getSwipeHintLabel() + '</span>' +
 				'<span class="ntc-carousel__swipe-hint-arrow ntc-carousel__swipe-hint-arrow--right">&#10095;</span>';
 
 			root.appendChild(hint);
@@ -251,6 +252,14 @@
 				root.classList.remove('is-swipe-hint-visible');
 				swipeHintTimerId = null;
 			}, 2600);
+		}
+
+		function getSwipeHintLabel() {
+			if (typeof l10n.swipeHintLabel === 'string' && l10n.swipeHintLabel.length) {
+				return l10n.swipeHintLabel;
+			}
+
+			return 'Swipe';
 		}
 
 		function triggerSwipeCommit(direction) {

@@ -10,6 +10,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 delete_option( 'ntc_settings' );
+delete_option( 'ntc_cache_namespace' );
 delete_transient( 'ntc_invalid_feed_urls_notice' );
 
 global $wpdb;

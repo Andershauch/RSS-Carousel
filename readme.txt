@@ -4,7 +4,7 @@ Tags: rss, feed, carousel, news, shortcode
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.1.2
+Stable tag: 2.1.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -47,6 +47,35 @@ No. Feed results are cached using the WordPress Transients API based on the plug
 Yes. The settings page includes a **Refresh Cache** button.
 
 == Changelog ==
+
+= 2.1.3 =
+
+* Replaced the settings-page source ordering logic with a native reorder flow.
+* Added explicit Up/Down controls so source priority can always be changed, even if drag behavior varies by browser.
+
+= 2.1.2 =
+
+* Fixed the settings-page source list so drag-and-drop reordering works more reliably in wp-admin.
+* Simplified the sortable list layout and tightened the sortable helper behavior for admin compatibility.
+
+= 2.1.1 =
+
+* Hardened the sortable feed-source settings field so source order is saved reliably.
+* Improved Danish text normalization for the read-more label and reduced mojibake fallback issues.
+
+= 2.1.0 =
+
+* Added drag-and-drop source prioritization in the settings screen for feed URLs.
+* Applied source priority to carousel ordering after the recent-news window and before keyword ranking for older items.
+
+= 2.0.0 =
+
+* Starts the new major release line for RSS News Carousel.
+* Removed duplicate scheduled refresh registration so cache rebuilds only run once per cron event.
+* Reduced the cache lifetime for failed feed refreshes so the carousel recovers faster after feed outages.
+* Improved cache invalidation for sites using persistent object cache backends.
+* Localized the mobile swipe hint and hardened default frontend text handling for Danish characters.
+* Replaced the Tottenham-specific defaults with generic Danish carousel copy.
 
 = 1.1.2 =
 
@@ -107,6 +136,26 @@ Yes. The settings page includes a **Refresh Cache** button.
 * Updated documentation and packaging metadata.
 
 == Upgrade Notice ==
+
+= 2.1.3 =
+
+Recommended update with native source reordering in settings and reliable Up/Down fallback controls.
+
+= 2.1.2 =
+
+Recommended update with a more reliable drag-and-drop source-priority list in settings.
+
+= 2.1.1 =
+
+Recommended update with a more robust sortable feed-source settings field and safer Danish text handling.
+
+= 2.1.0 =
+
+Recommended update with sortable feed-source priority in settings and improved source-aware item ordering.
+
+= 2.0.0 =
+
+Recommended major update with safer cache invalidation, faster recovery from feed outages, and improved Danish text handling.
 
 = 1.1.2 =
 

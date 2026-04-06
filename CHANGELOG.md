@@ -1,5 +1,34 @@
 # Changelog
 
+## 2.1.3 - 2026-04-06
+
+- Replaced the settings-page source ordering logic with a native reorder flow.
+- Added explicit Up/Down controls so source priority can always be changed, even if drag behavior varies by browser.
+
+## 2.1.2 - 2026-04-06
+
+- Fixed the settings-page source list so drag-and-drop reordering works more reliably in wp-admin.
+- Simplified the sortable list layout and tightened the sortable helper behavior for admin compatibility.
+
+## 2.1.1 - 2026-04-06
+
+- Hardened the sortable feed-source settings field so source order is saved reliably.
+- Improved Danish text normalization for the read-more label and reduced mojibake fallback issues.
+
+## 2.1.0 - 2026-04-06
+
+- Added drag-and-drop source prioritization to the settings page for feed URLs.
+- Applied source priority to carousel ordering after the recent-news window and before keyword ranking for older items.
+
+## 2.0.0 - 2026-04-06
+
+- Started the new major release line for RSS News Carousel.
+- Removed duplicate cron hook registration so scheduled cache refreshes only run once per event.
+- Shortened cache lifetime for failed feed refreshes to recover faster from transient upstream outages.
+- Added namespace-based cache invalidation so settings updates and uninstall work reliably with persistent object caches.
+- Localized the mobile swipe hint through PHP and hardened frontend default text handling for Danish characters.
+- Replaced the Tottenham-specific defaults with generic Danish carousel text.
+
 ## 1.1.2 - 2026-04-02
 
 - Added a first-run mobile swipe hint so users can immediately see that the carousel supports swiping.
