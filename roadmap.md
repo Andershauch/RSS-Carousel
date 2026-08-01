@@ -1,203 +1,145 @@
 # Roadmap
 
-## Status ved dagens afslutning
+## Status lige nu
 
-Pluginet er nu paa en stabil base med:
+Pluginet staar nu paa en mere moden base med:
 
-- fungerende WordPress-installation via korrekt release-zip
-- loebende versionsstyring i GitHub
-- fast release-flow med commit, build af zip og push
-- testet frontend i Local
-- mobilkarrusel med klik, swipe og visuel feedback
+- release `2.1.3`
+- source-prioritering i settings
+- reorder af feed-kilder via drag eller `Up` / `Down`
+- sortering der foerst viser nyheder fra de seneste 48 timer
+- derefter sortering efter kildeprioritet, keywords og dato
+- fast release-flow med commit, tag, build og push
 
-Seneste fungerende release er:
+Seneste release-zip ligger her:
 
-- `rss-news-carousel-1.0.7.zip`
+- `C:\Users\ander\RSS Carousel\dist\rss-news-carousel-2.1.3.zip`
+
+Git-status ved seneste afslutning:
+
+- commit: `c2aeac9`
+- tag: `v2.1.3`
+- pushed til `origin/main`
 
 ## Naeste fokusomraade
 
-Naeste arbejdsspor er at undersoege, om pluginet kan vise indhold baseret paa hashtags fra:
+Naeste arbejdsspor er ikke nye features, men maalrettet optimering.
 
-- Instagram
-- X
-- Facebook
+Filteret for alt nyt arbejde skal vaere:
 
-Maalet skal ikke vaere at love alt paa en gang. Maalet skal vaere at finde den mest realistiske og stabile loesning, som kan vedligeholdes i et WordPress-plugin uden at goere projektet skroebeligt.
+- forbedrer det performance?
+- mindsker det fejl eller race conditions?
+- goer det cache og sortering mere robuste?
 
-## Vigtig realitet foer vi gaar videre
+Hvis svaret ikke er ja til mindst et af punkterne, skal vi som udgangspunkt ikke bygge det.
 
-Hashtag-integration paa sociale platforme er ikke som almindelige RSS-feeds.
+## Overordnet plan
 
-Det kraever typisk:
+Vi tager optimeringsarbejdet i 3 sikre commits.
 
-- app-oprettelse hos platformen
-- API-noegler eller tokens
-- app review eller saerlige tilladelser
-- hensyn til rate limits
-- tydelig haandtering af fejl, udloebne tokens og manglende adgang
+### Commit 1
 
-Det betyder, at dette spor skal bygges mere som en "provider integration" end som en normal feed-udvidelse.
+`Decouple feed cache from presentation settings`
 
-## Konservativ anbefaling
+Maal:
 
-Vi boer ikke bygge alle tre platforme samtidig.
+- dele feed-cache fra rene design- og tekstindstillinger
+- undgaa nye feed-kald naar man kun aendrer farver, fonte, overskrifter eller knaptekst
 
-Den sikreste raekkefolge er:
+Konkrete opgaver:
 
-1. X
-2. Instagram
-3. Facebook
+- indfoer et separat feed fingerprint i `includes/class-cache.php`
+- lad cache-noeglen kun afhaenge af feed-relevante felter:
+  - feed URLs
+  - keywords
+  - source priority
+  - cache duration
+- fjern designfelter og tekstfelter fra det, der trigger nyt feed-fetch
 
-Grunden er:
+Forventet gevinst:
 
-- X har en ret tydelig soege-API til nyere opslag
-- Instagram har hashtag-soegning, men med tungere Meta-krav
-- Facebook er den mest usikre i forhold til egentlig hashtag-soegning paa offentlige opslag
+- faerre eksterne requests
+- hurtigere arbejde i settings
+- mindre risiko for unodig cache churn
 
-## Fase 1: Arkitektur og afklaring
+### Commit 2
 
-Foerste fase boer vaere helt uden stor frontend-aendring.
+`Optimize feed processing and reduce duplicate work`
 
-Vi skal lave:
+Maal:
 
-- en provider-model, saa pluginet kan skelne mellem `rss`, `instagram`, `x` og senere `facebook`
-- en faelles datastruktur, saa sociale opslag kan normaliseres ind i samme format som feed-items
-- en separat cache-strategi for sociale kilder
-- adminfelter til credentials, men foerst naar vi kender kravene praecist
+- reducere CPU-arbejde i fetch- og sorteringspipen
+- fjerne arbejde paa items der alligevel bliver kasseret
 
-Vi boer fortsat genbruge den eksisterende normaliserede struktur saa langt som muligt:
+Konkrete opgaver:
 
-- `title`
-- `url`
-- `source`
-- `published_at`
-- `excerpt`
-- `image`
-- `categories`
-- `guid`
+- flyt duplicate removal tidligere i `includes/class-feed-fetcher.php`
+- gem numerisk timestamp direkte paa item i `includes/class-item-normalizer.php`
+- genbrug timestamp i sorteringen i stedet for gentagne `strtotime()`
+- forudberegn soegetekst til keyword-match i `includes/class-keyword-filter.php`
+- goer media parsing betinget af om media faktisk vises
 
-Men vi faar sandsynligvis brug for ekstra felter senere:
+Forventet gevinst:
 
-- `platform`
-- `author_name`
-- `author_handle`
-- `engagement`
-- `media_type`
-- `media_url`
-- `permalink`
+- mindre CPU-forbrug
+- hurtigere sortering
+- bedre robusthed paa store eller dublerede feeds
 
-## Fase 2: X-hashtag visning
+### Commit 3
 
-Dette er den mest realistiske foerste sociale integration.
+`Harden cache rebuild behavior and add regression coverage`
 
-Foreloebig plan:
+Maal:
 
-1. Tilfoej en provider-klasse for X.
-2. Lav adminfelter til Bearer Token og soegestreng.
-3. Brug hashtag-query, fx `(#tottenham OR #coys) -is:retweet`.
-4. Normaliser resultaterne ind i pluginets faelles item-format.
-5. Cache resultatet haardt for at skaane API-forbrug.
-6. Vis opslag i samme karrusel som oevrige items eller i en separat kildevisning.
+- undgaa parallelle cache rebuilds
+- mindske risikoen for at gamle fejl kommer tilbage
 
-Det vi skal vaere opmaerksomme paa:
+Konkrete opgaver:
 
-- X Recent Search daekker nyere opslag og kraever udvikleradgang
-- adgangsniveau og rate limits kan aendre sig
-- medieudtraek skal testes saerskilt
+- tilfoej en kort rebuild-lock i `includes/class-feed-fetcher.php`
+- gennemgaa manuel refresh og cron-refresh for overlap
+- goer tekstmigrering i `includes/class-ntc-settings.php` til en engangsopgradering
+- tilfoej regressionstests for:
+  - 48 timers prioritet
+  - source priority
+  - keyword fallback
+  - save/load af feed-raekkefoelge
+  - cache ikke invalideres ved rene designaendringer
 
-## Fase 3: Instagram-hashtag visning
+Forventet gevinst:
 
-Instagram skal behandles som en separat og mere restriktiv integration.
+- faerre race conditions
+- faerre regressions
+- sikrere videreudvikling
 
-Foreloebig plan:
+## Anbefalet raekkefoelge
 
-1. Verificer praecis hvilken Instagram/Meta-konto der skal bruges.
-2. Verificer om vi skal bruge Business- eller Creator-konto.
-3. Opret Meta app og forbind den korrekt til side/konto.
-4. Lav hashtag-opslag via Instagram Graph API.
-5. Hent `recent media` eller `top media` for relevante hashtags.
-6. Normaliser data til pluginets item-format.
+1. Commit 1
+2. Commit 2
+3. Commit 3
 
-Det vi skal vaere opmaerksomme paa:
+## Ting vi bevidst ikke prioriterer nu
 
-- Meta-opsaetning er ofte den svaere del, ikke selve koden
-- token-levetid og fornyelse skal taenkes ind tidligt
-- app review og permissions kan blive en reel blokering
-- vi boer ikke love "plug and play" foer vi har testet det med en rigtig konto
+Vi bruger ikke tid paa:
 
-## Fase 4: Facebook
+- brede clean-code refactors uden konkret driftseffekt
+- nye abstraktionslag kun for strukturens skyld
+- nye features der ikke direkte forbedrer performance eller robusthed
 
-Facebook boer behandles som et undersoegelsesspor, ikke et loefte.
+## Genstartsprompt til naeste session
 
-Det vi ved lige nu:
+Brug denne prompt naeste gang:
 
-- almindelig offentlig hashtag-soegning paa Facebook er usikker som plugin-retning
-- selv laesning af offentligt sideindhold kan kraeve saerlige features og review
-
-Min anbefaling er derfor:
-
-- vi planlaegger ikke "Facebook hashtags" som v1-maal
-- vi undersoeger i stedet, om der er en realistisk vej via Facebook Page-indhold eller en mere begraenset integration
-- hvis det ikke er robust, skal vi hellere sige det tydeligt end bygge noget halvt
-
-## Foreslaaet arbejdsraekkefolge naeste gang
-
-1. Afklare praecist hvilket socialt indhold du vil vise foerst.
-2. Starte med X som foerste provider.
-3. Designe settings-strukturen til sociale credentials.
-4. Bygge en intern provider-arkitektur uden at aendre den nuvaerende frontend for meget.
-5. Teste mod rigtige API-svar i Local.
-
-## Hvad du skal vaere opmaerksom paa
-
-Foer vi gaar videre, er det vigtigt at du taenker over disse punkter:
-
-- Hvilke hashtags er vigtigst?
-- Skal sociale posts blandes sammen med RSS i samme karrusel, eller vises separat?
-- Vil du kun vise egne konti, eller ogsaa offentlige opslag fra andre?
-- Har du allerede adgang til en X developer-app?
-- Har du en Meta Business Manager / Facebook app / Instagram Business-konto klar?
-- Er det vigtigt at kunne moderere eller filtrere opslag manuelt?
-
-## Min anbefaling til beslutning
-
-Hvis maalet er at faa noget brugbart hurtigt, saa boer vi naeste gang satse paa:
-
-- X foerst
-- Instagram bagefter
-- Facebook kun hvis vi kan verificere en stabil og lovlig vej
-
-Det vil give den bedste balance mellem:
-
-- vaerdi
-- stabilitet
-- tidsforbrug
-- realistisk drift
-
-## Kilder der boer bruges som udgangspunkt naeste gang
-
-X:
-
-- `https://docs.x.com/x-api/posts/search/quickstart/recent-search`
-- `https://developer.x.com/en/docs/x-api/search-overview`
-
-Instagram / Meta:
-
-- `https://developers.facebook.com/docs/instagram-api/`
-- `https://developers.facebook.com/docs/instagram-api/guides/hashtag-search/`
-- `https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-hashtag/recent-media`
-
-Facebook / Meta:
-
-- `https://developers.facebook.com/docs/apps/review/feature#reference-PAGES_ACCESS`
+`Fortsat arbejde paa RSS Carousel ud fra roadmap.md. Start med Commit 1: decouple feed cache from presentation settings. Hold dig kun til aendringer der forbedrer performance eller mindsker fejl. Laes roadmap.md foerst, undersoeg de relevante filer, implementer aendringen end-to-end, koer relevante checks, opdater versionsnummer hvis det er en rigtig release, byg ny zip i dist og forklar kort hvad der er aendret.`
 
 ## Praktisk note til naeste arbejdssession
 
-Vi skal holde fast i den arbejdsgang, der virker:
+Vi holder fast i denne arbejdsgang:
 
-1. lave aendringen
-2. teste i Local naar det er relevant
-3. committe
-4. bygge ny release-zip
-5. pushe til GitHub
-6. huske at opdatere versionsnummeret ved rigtige plugin-releases
+1. undersoeg de relevante filer foerst
+2. implementer den konkrete forbedring
+3. koer checks eller lint hvor det giver mening
+4. commit
+5. tag hvis det er en release
+6. byg release-zip
+7. push naar aendringen er klar
